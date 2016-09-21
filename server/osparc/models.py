@@ -50,3 +50,14 @@ class Plant(models.Model):
     costmodel = models.ManyToManyField(Costmodel)
 """
 
+class StorageSystem(models.Model):
+    name = models.CharField(max_length=45)
+    description = models.CharField(max_length=254, blank=True, null=True)
+    plant = models.ForeignKey(Plant,null=True)
+    activationDate = models.DateField(auto_now_add=True)
+    originalCapacity = models.IntegerField(blank=True,null=True)
+    currentCapacity  = models.IntegerField(blank=True,null=True)
+    stateOfCharge = models.FloatField(blank=True,null=True)
+    def __str__(self):
+        return self.name
+
