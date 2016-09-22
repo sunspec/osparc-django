@@ -10,7 +10,7 @@ class PlantTypeSerializer(serializers.ModelSerializer):
 class PlantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Plant
-        fields = ("name", "description", "activationDate", "type")
+        fields = ("name","description","activationDate","type","postalCode","state","county","city","latitude","longitude","timeZone","DCOptimized","inverterType","weatherSource","designModel","nominalACPowerRating","ACCapacity","DCRating","derate","degradationRate")
 
 class StorageSystemSerializer(serializers.ModelSerializer):
     class Meta:

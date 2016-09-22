@@ -10,10 +10,26 @@ class PlantType(models.Model):
         return self.name
 
 class Plant(models.Model):
-    name = models.CharField(max_length=45)
+    name = models.CharField(max_length=45, blank=True, null=True)
     description = models.CharField(max_length=254, blank=True, null=True)
     activationDate = models.DateField(auto_now_add=True)
     type = models.ForeignKey(PlantType,null=True)
+    postalCode = models.CharField(max_length=6,default='')
+    state = models.CharField(max_length=2,default='')
+    county = models.CharField(max_length=32,default='')
+    city = models.CharField(max_length=32,default='')
+    latitude = models.CharField(max_length=16,default='none')
+    longitude = models.CharField(max_length=16,default='none')
+    timeZone = models.CharField(max_length=64,default='none')
+    DCOptimized = models.CharField(max_length=32, blank=True, null=True)
+    inverterType = models.CharField(max_length=32, blank=True, null=True)
+    weatherSource = models.CharField(max_length=32, blank=True, null=True)
+    designModel = models.CharField(max_length=32, blank=True, null=True)
+    nominalACPowerRating = models.FloatField(blank=True, null=True)
+    ACCapacity = models.FloatField(blank=True, null=True)
+    DCRating = models.FloatField(blank=True, null=True)
+    derate = models.FloatField(blank=True, null=True)
+    degradationRate = models.FloatField(blank=True, null=True)
     def __str__(self):
         return self.name
 
