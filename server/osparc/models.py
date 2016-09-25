@@ -73,7 +73,6 @@ class PVArray(models.Model):
     trackerType = models.CharField(max_length=32)
     tilt = models.IntegerField()
     azimuth = models.IntegerField()
-    orientation = models.IntegerField()
     def __str__(self):
         return self.name
     

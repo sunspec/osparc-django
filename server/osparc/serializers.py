@@ -15,10 +15,10 @@ class PlantSerializer(serializers.ModelSerializer):
 class StorageSystemSerializer(serializers.ModelSerializer):
     class Meta:
         model = StorageSystem
-        fields = ("name", "description", "plant", "activationDate", "originalCapacity", "currentCapacity", "stateOfCharge")
+        fields = ("name","description","plant","activationDate","originalCapacity","currentCapacity", "stateOfCharge")
 
 class PVArraySerializer(serializers.ModelSerializer):
     class Meta:
         model = PVArray
-        fields = ("name","description","arrayId","trackerType","tilt","azimuth","orientation")
+        fields = ("name","description","plant","arrayId","trackerType","tilt","azimuth")
 

@@ -1,0 +1,8 @@
+{
+	"name":"sw",
+	"plant":1,
+	"arrayId":2,
+	"trackerType":"fixed",
+	"tilt":15,
+	"azimuth":180
+}

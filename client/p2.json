@@ -1,0 +1,12 @@
+{
+	"name": "p2",
+	"description": "second",
+	"postalCode":"91234",
+	"state":"CA",
+	"county":"Santa Cruz",
+	"city":"Aptos",
+	"latitude":38.5,
+	"longitude":-122,
+	"timeZone":"PDT"
+}
+

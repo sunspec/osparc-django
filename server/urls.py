@@ -3,10 +3,10 @@ from osparc.views import PlantTypeViewSet,PlantViewSet,StorageSystemViewSet,PVAr
 
 router = DefaultRouter(trailing_slash=False)
 
-router.register(prefix='planttypes', viewset=PlantTypeViewSet)
-router.register(prefix='plants', viewset=PlantViewSet)
-router.register(prefix='storagesystems', viewset=StorageSystemViewSet)
-router.register(prefix='pvarrays', viewset=PVArrayViewSet)
+router.register(prefix='api/planttypes', viewset=PlantTypeViewSet)
+router.register(prefix='api/plants', viewset=PlantViewSet)
+router.register(prefix='api/storagesystems', viewset=StorageSystemViewSet)
+router.register(prefix='api/pvarrays', viewset=PVArrayViewSet)
 
 urlpatterns = router.urls
 

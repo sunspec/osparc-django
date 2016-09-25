@@ -1,0 +1,11 @@
+{
+	"name": "p1",
+	"description": "first plant",
+	"postalCode":"95123",
+	"state":"CA",
+	"county":"San Mateo",
+	"city":"Redwood City",
+	"latitude":38,
+	"longitude":-122,
+	"timeZone":"PDT"
+}
