@@ -1,11 +1,12 @@
 from rest_framework.routers import DefaultRouter
-from osparc.views import PlantTypeViewSet, PlantViewSet, StorageSystemViewSet
+from osparc.views import PlantTypeViewSet,PlantViewSet,StorageSystemViewSet,PVArrayViewSet
 
 router = DefaultRouter(trailing_slash=False)
 
 router.register(prefix='planttypes', viewset=PlantTypeViewSet)
 router.register(prefix='plants', viewset=PlantViewSet)
 router.register(prefix='storagesystems', viewset=StorageSystemViewSet)
+router.register(prefix='pvarrays', viewset=PVArrayViewSet)
 
 urlpatterns = router.urls
 

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from osparc.models import PlantType,Plant,StorageSystem
+from osparc.models import PlantType,Plant,StorageSystem,PVArray
 
 
 class PlantTypeSerializer(serializers.ModelSerializer):
@@ -10,11 +10,15 @@ class PlantTypeSerializer(serializers.ModelSerializer):
 class PlantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Plant
-        fields = ("name","description","activationDate","type","postalCode","state","county","city","latitude","longitude","timeZone","DCOptimized","inverterType","weatherSource","designModel","nominalACPowerRating","ACCapacity","DCRating","derate","degradationRate")
+        fields = ("name","description","activationDate","postalCode","state","county","city","latitude","longitude","timeZone")
 
 class StorageSystemSerializer(serializers.ModelSerializer):
     class Meta:
         model = StorageSystem
         fields = ("name", "description", "plant", "activationDate", "originalCapacity", "currentCapacity", "stateOfCharge")
 
+class PVArraySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PVArray
+        fields = ("name","description","arrayId","trackerType","tilt","azimuth","orientation")
 

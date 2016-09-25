@@ -10,10 +10,9 @@ class PlantType(models.Model):
         return self.name
 
 class Plant(models.Model):
-    name = models.CharField(max_length=45, blank=True, null=True)
+    name = models.CharField(max_length=250, blank=True, null=True)
     description = models.CharField(max_length=254, blank=True, null=True)
     activationDate = models.DateField(auto_now_add=True)
-    type = models.ForeignKey(PlantType,null=True)
     postalCode = models.CharField(max_length=6,default='')
     state = models.CharField(max_length=2,default='')
     county = models.CharField(max_length=32,default='')
@@ -21,17 +20,17 @@ class Plant(models.Model):
     latitude = models.CharField(max_length=16,default='none')
     longitude = models.CharField(max_length=16,default='none')
     timeZone = models.CharField(max_length=64,default='none')
-    DCOptimized = models.CharField(max_length=32, blank=True, null=True)
-    inverterType = models.CharField(max_length=32, blank=True, null=True)
-    weatherSource = models.CharField(max_length=32, blank=True, null=True)
-    designModel = models.CharField(max_length=32, blank=True, null=True)
-    nominalACPowerRating = models.FloatField(blank=True, null=True)
-    ACCapacity = models.FloatField(blank=True, null=True)
-    DCRating = models.FloatField(blank=True, null=True)
-    derate = models.FloatField(blank=True, null=True)
-    degradationRate = models.FloatField(blank=True, null=True)
     def __str__(self):
         return self.name
+    # DCOptimized = models.CharField(max_length=32, blank=True, null=True)
+    # inverterType = models.CharField(max_length=32, blank=True, null=True)
+    # weatherSource = models.CharField(max_length=32, blank=True, null=True)
+    # designModel = models.CharField(max_length=32, blank=True, null=True)
+    # nominalACPowerRating = models.FloatField(blank=True, null=True)
+    # ACCapacity = models.FloatField(blank=True, null=True)
+    # DCRating = models.FloatField(blank=True, null=True)
+    # derate = models.FloatField(blank=True, null=True)
+    # degradationRate = models.FloatField(blank=True, null=True)
 
 
 """
@@ -65,6 +64,19 @@ class Plant(models.Model):
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
     costmodel = models.ManyToManyField(Costmodel)
 """
+
+class PVArray(models.Model):
+    name = models.CharField(max_length=250, blank=True, null=True)
+    description = models.CharField(max_length=254, blank=True, null=True)
+    plant = models.ForeignKey(Plant,null=True)
+    arrayId = models.IntegerField()
+    trackerType = models.CharField(max_length=32)
+    tilt = models.IntegerField()
+    azimuth = models.IntegerField()
+    orientation = models.IntegerField()
+    def __str__(self):
+        return self.name
+    
 
 class StorageSystem(models.Model):
     name = models.CharField(max_length=45)

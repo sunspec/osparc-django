@@ -1,6 +1,6 @@
 from rest_framework import viewsets
-from osparc.models import PlantType, Plant, StorageSystem
-from osparc.serializers import PlantTypeSerializer, PlantSerializer, StorageSystemSerializer
+from osparc.models import PlantType,Plant,StorageSystem,PVArray
+from osparc.serializers import PlantTypeSerializer,PlantSerializer,StorageSystemSerializer,PVArraySerializer
 
 
 class PlantTypeViewSet(viewsets.ModelViewSet):
@@ -14,3 +14,7 @@ class PlantViewSet(viewsets.ModelViewSet):
 class StorageSystemViewSet(viewsets.ModelViewSet):
     queryset = StorageSystem.objects.all()
     serializer_class = StorageSystemSerializer
+
+class PVArrayViewSet(viewsets.ModelViewSet):
+    queryset = PVArray.objects.all()
+    serializer_class = PVArraySerializer
