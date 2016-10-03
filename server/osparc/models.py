@@ -2,14 +2,34 @@ from django.db import models
 from django.utils import timezone
 from django.core.validators import MaxValueValidator, MinValueValidator
 
+class Account(models.Model):
+    accountID = models.CharField(max_length=250)
+    role = models.CharField(max_length=16,blank=True,null=True)
+    name = models.CharField(max_length=50,blank=True,null=True)
+    companyName = models.CharField(max_length=50,blank=True,null=True)
+    companyAddress = models.CharField(max_length=50,blank=True,null=True)
+    companyCityState = models.CharField(max_length=50,blank=True,null=True)
+    companyPostalCode = models.CharField(max_length=10,blank=True,null=True)
+    email = models.CharField(max_length=50,blank=True,null=True)
+    password = models.CharField(max_length=250)
+    versionCreationTime = models.DateTimeField(auto_now_add=True)
+    recordStatus = models.IntegerField(default=1)
+    versionID = models.IntegerField(default=1)
+    def __str__(self):
+        return self.name
+
+    # participantTypeID all 0
+    # GeneratedPassword all NULL
+    # GeneratedPasswordTime all NULL
+
 class PlantType(models.Model):
     name = models.CharField(unique=True, max_length=45)
     description = models.CharField(max_length=254, blank=True, null=True)
-
     def __str__(self):
         return self.name
 
 class Plant(models.Model):
+    plantUUID = models.CharField(max_length=254,blank=True,null=True)
     name = models.CharField(max_length=250, blank=True, null=True)
     description = models.CharField(max_length=254, blank=True, null=True)
     activationDate = models.DateField(auto_now_add=True)
@@ -20,21 +40,30 @@ class Plant(models.Model):
     latitude = models.CharField(max_length=16,default='none')
     longitude = models.CharField(max_length=16,default='none')
     timeZone = models.CharField(max_length=64,default='none')
+    weatherSource = models.CharField(max_length=32, blank=True, null=True) # CPR or local
+    DCRating = models.FloatField(blank=True, null=True)
+    derate = models.FloatField(blank=True, null=True)
+    # plant-meta-meta data
+    account = models.ForeignKey(Account)
+    recordStatus = models.IntegerField(default=1)
+    versionCreationTime = models.DateTimeField(auto_now_add=True)
+    versionID = models.IntegerField(default=1)
+    solarAnywhereSite = models.CharField(max_length=64,blank=True,null=True)
     def __str__(self):
         return self.name
-    # DCOptimized = models.CharField(max_length=32, blank=True, null=True)
-    # inverterType = models.CharField(max_length=32, blank=True, null=True)
-    # weatherSource = models.CharField(max_length=32, blank=True, null=True)
-    # designModel = models.CharField(max_length=32, blank=True, null=True)
-    # nominalACPowerRating = models.FloatField(blank=True, null=True)
-    # ACCapacity = models.FloatField(blank=True, null=True)
-    # DCRating = models.FloatField(blank=True, null=True)
-    # derate = models.FloatField(blank=True, null=True)
-    # degradationRate = models.FloatField(blank=True, null=True)
-
 
 """
-    postal = models.CharField(max_length=6)
+current oSPARC - reason not carried forward shown in right column
+    # DCOptimized = models.CharField(max_length=32, blank=True, null=True) all NULL
+    # inverterType = models.CharField(max_length=32, blank=True, null=True) all NULL
+    # designModel = models.CharField(max_length=32, blank=True, null=True) all NULL
+    # nominalACPowerRating = models.FloatField(blank=True, null=True) all NULL
+    # ACCapacity = models.FloatField(blank=True, null=True) all NULL
+    # degradationRate = models.FloatField(blank=True, null=True) all NULL
+"""
+
+"""
+pv_cost_model
     size = models.IntegerField(blank=True, null=True)
     type = models.ForeignKey('PlantType', models.SET_NULL, blank=True, null=True)
     analysis_period = models.IntegerField(blank=True, null=True)
@@ -65,10 +94,22 @@ class Plant(models.Model):
     costmodel = models.ManyToManyField(Costmodel)
 """
 
+class UploadActivity(models.Model):
+    requestTime = models.DateTimeField(auto_now_add=True)
+    responseTime = models.DateTimeField(blank=True,null=True)
+    plantUUID = models.CharField(max_length=254,blank=True,null=True)
+    status = models.CharField(max_length=16)
+    errorDetail = models.CharField(max_length=1024,blank=True,null=True)
+    s3Key = models.CharField(max_length=254)
+    account = models.ForeignKey(Account)
+    plant = models.ForeignKey(Plant)
+    def __str__(self):
+        return self.name
+
 class PVArray(models.Model):
     name = models.CharField(max_length=250, blank=True, null=True)
     description = models.CharField(max_length=254, blank=True, null=True)
-    plant = models.ForeignKey(Plant,null=True)
+    plant = models.ForeignKey(Plant)
     arrayId = models.IntegerField()
     trackerType = models.CharField(max_length=32)
     tilt = models.IntegerField()
@@ -87,4 +128,75 @@ class StorageSystem(models.Model):
     stateOfCharge = models.FloatField(blank=True,null=True)
     def __str__(self):
         return self.name
+
+class PlantTimeSeries(models.Model):
+    timeStamp = models.DateTimeField()
+    sampleInterval = models.IntegerField()
+    WH_DIFF = models.FloatField()
+    GHI_DIFF = models.FloatField()
+    TMPAMB_AVG = models.FloatField()
+    # plantTimeSeries-meta-meta data
+    plant = models.ForeignKey(Plant)
+    recordStatus = models.IntegerField(default=1) # RECORD_STATUS_ACTIVE
+    def __str__(self):
+        return self.name
+
+
+
+# | WH_LAST           | float      | YES  |     | NULL    | all NULL
+# | W_AVG             | float      | YES  |     | NULL    | all NULL
+# | WNDSPD_AVG        | float      | YES  |     | NULL    | all NULL
+# | PRES_AVG          | float      | YES  |     | NULL    | all NULL
+# | RH_AVG            | float      | YES  |     | NULL    | all NULL
+# | DCV_AVG           | float      | YES  |     | NULL    | all NULL
+# | DCA_AVG           | float      | YES  |     | NULL    | all NULL
+# | ACV_AVG           | float      | YES  |     | NULL    | all NULL
+# | ACA_AVG           | float      | YES  |     | NULL    | all NULL
+# | HZ_AVG            | float      | YES  |     | NULL    | all NULL
+# | PF_AVG            | float      | YES  |     | NULL    | all NULL
+# | WHL_LAST          | float      | YES  |     | NULL    | all NULL
+# | WHL_DIFF          | float      | YES  |     | NULL    | all NULL
+# | WHX_LAST          | float      | YES  |     | NULL    | all NULL
+# | WHX_DIFF          | float      | YES  |     | NULL    | all NULL
+# | WHI_LAST          | float      | YES  |     | NULL    | all NULL
+# | WHI_DIFF          | float      | YES  |     | NULL    | all NULL
+# | WHC_LAST          | float      | YES  |     | NULL    | all NULL
+# | WHC_DIFF          | float      | YES  |     | NULL    | all NULL
+# | WHD_LAST          | float      | YES  |     | NULL    | all NULL
+# | WHD_DIFF          | float      | YES  |     | NULL    | all NULL
+# | WHP_LAST          | float      | YES  |     | NULL    | all NULL
+# | WHP_DIFF          | float      | YES  |     | NULL    | all NULL
+# | StateOperating    | int(11)    | YES  |     | NULL    | all NULL
+# | StateIslanded     | int(11)    | YES  |     | NULL    | all NULL
+# | StateStandby      | int(11)    | YES  |     | NULL    | all NULL
+# | StateEnv          | int(11)    | YES  |     | NULL    | all NULL
+# | StateGrid         | int(11)    | YES  |     | NULL    | all NULL
+# | StateShutdown     | int(11)    | YES  |     | NULL    | all NULL
+# | StateForced       | int(11)    | YES  |     | NULL    | all NULL
+# | StateEmergency    | int(11)    | YES  |     | NULL    | all NULL
+# | NumInverterFaults | int(11)    | YES  |     | NULL    | all NULL
+# | NumModuleFaults   | int(11)    | YES  |     | NULL    | all NULL
+# | NumMeterFaults    | int(11)    | YES  |     | NULL    | all NULL
+# | NumSensorFaults   | int(11)    | YES  |     | NULL    | all NULL
+# | NumCommFaults     | int(11)    | YES  |     | NULL    | all NULL
+# | NumOtherFaults    | int(11)    | YES  |     | NULL    | all NULL
+
+class PVArrayTimeSeries(models.Model):
+    timeStamp = models.DateTimeField()
+    sampleInterval = models.IntegerField()
+    HPOA_DIFF = models.FloatField()
+    # meta-data
+    plant = models.ForeignKey(Plant)
+    pvArray = models.ForeignKey(PVArray)
+    recordStatus = models.IntegerField(default=1) # RECORD_STATUS_ACTIVE
+    def __str__(self):
+        return self.name
+
+# | GPOA           | float       | YES  |     | NULL    |                |
+# | HPOA_LAST      | float       | YES  |     | NULL    |                |
+# | TMPBOM         | float       | YES  |     | NULL    |                |
+# | DCW            | float       | YES  |     | NULL    |                |
+# | DCWH_LAST      | float       | YES  |     | NULL    |                |
+# | DCWH_DIFF      | float       | YES  |     | NULL    |                |
+
 
