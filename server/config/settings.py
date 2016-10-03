@@ -86,7 +86,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql', 
         'NAME': 'osparc',
         'USER': 'root',
-        'PASSWORD': 'h4nn0v35#',
+        'PASSWORD': 'PythonMySQLoSPARC',
         'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
         'PORT': '3306',
     }
