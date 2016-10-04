@@ -1,7 +1,7 @@
 from rest_framework import viewsets
-from osparc.models import Account,UploadActivity,PlantType,Plant,StorageSystem,PVArray,PlantTimeSeries,PVArrayTimeSeries
-from osparc.serializers import AccountSerializer,UploadActivitySerializer,PlantTypeSerializer,PlantSerializer,StorageSystemSerializer,PVArraySerializer
-from osparc.serializers import PlantTimeSeriesSerializer,PVArrayTimeSeriesSerializer
+from osparc.models import Account,UploadActivity,PlantType,Plant,PlantTimeSeries
+from osparc.serializers import AccountSerializer,UploadActivitySerializer,PlantTypeSerializer,PlantSerializer
+from osparc.serializers import PlantTimeSeriesSerializer
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework import response, schemas
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
@@ -23,21 +23,10 @@ class PlantViewSet(viewsets.ModelViewSet):
     queryset = Plant.objects.all()
     serializer_class = PlantSerializer
 
-class StorageSystemViewSet(viewsets.ModelViewSet):
-    queryset = StorageSystem.objects.all()
-    serializer_class = StorageSystemSerializer
-
-class PVArrayViewSet(viewsets.ModelViewSet):
-    queryset = PVArray.objects.all()
-    serializer_class = PVArraySerializer
-
 class PlantTimeSeriesViewSet(viewsets.ModelViewSet):
     queryset = PlantTimeSeries.objects.all()
     serializer_class = PlantTimeSeriesSerializer
 
-class PVArrayTimeSeriesViewSet(viewsets.ModelViewSet):
-    queryset = PVArrayTimeSeries.objects.all()
-    serializer_class = PVArrayTimeSeriesSerializer
 
 @api_view()
 @renderer_classes([OpenAPIRenderer, SwaggerUIRenderer])

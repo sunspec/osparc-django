@@ -1,6 +1,6 @@
 from rest_framework.routers import DefaultRouter
-from osparc.views import AccountViewSet,UploadActivityViewSet,PlantTypeViewSet,PlantViewSet,StorageSystemViewSet,PVArrayViewSet
-from osparc.views import PlantTimeSeriesViewSet,PVArrayTimeSeriesViewSet
+from osparc.views import AccountViewSet,UploadActivityViewSet,PlantTypeViewSet,PlantViewSet
+from osparc.views import PlantTimeSeriesViewSet
 from django.conf.urls import url, include
 from osparc.views import schema_view
 
@@ -10,10 +10,7 @@ router.register(prefix='accounts', viewset=AccountViewSet)
 router.register(prefix='uploadactivities', viewset=UploadActivityViewSet)
 router.register(prefix='planttypes', viewset=PlantTypeViewSet)
 router.register(prefix='plants', viewset=PlantViewSet)
-router.register(prefix='storagesystems', viewset=StorageSystemViewSet)
-router.register(prefix='pvarrays', viewset=PVArrayViewSet)
 router.register(prefix='planttimeseries', viewset=PlantTimeSeriesViewSet)
-router.register(prefix='pvarraytimeseries', viewset=PVArrayTimeSeriesViewSet)
 
 urlpatterns = router.urls
 
