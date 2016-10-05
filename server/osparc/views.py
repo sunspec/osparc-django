@@ -33,19 +33,20 @@ class PlantTimeSeriesViewSet(viewsets.ModelViewSet):
     queryset = PlantTimeSeries.objects.all()
     serializer_class = PlantTimeSeriesSerializer
 
-# count
+# counts
 class PlantCountView(APIView):
     def get(self, request, format=None):
         plantDict = { 'count': Plant.objects.count() }
         return Response(plantDict)
 
-    # def post(self,request,format=None):
-    #     serializer = SnippetSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data,status=status.HTTP_201_CREATED)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+class PlantDCCapacityView(APIView):
+    def get(self, request, format=None):
+        plants = Plant.objects.all()
+        capacity = 0.0
+        for plant in plants:
+            capacity += plant.DCRating
+        capDict = { 'DCCapacity':capacity}
+        return Response(capDict)
 
 # swagger
 @api_view()
