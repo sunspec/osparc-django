@@ -32,7 +32,7 @@ class Plant(models.Model):
     plantUUID = models.CharField(max_length=254,blank=True,null=True)
     name = models.CharField(max_length=250, blank=True, null=True)
     description = models.CharField(max_length=254, blank=True, null=True)
-    activationDate = models.DateField(auto_now_add=True)
+    activationDate = models.DateField()
     postalCode = models.CharField(max_length=6,default='')
     state = models.CharField(max_length=2,default='')
     county = models.CharField(max_length=32,default='')
