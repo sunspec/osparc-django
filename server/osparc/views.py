@@ -34,13 +34,31 @@ class PlantTimeSeriesViewSet(viewsets.ModelViewSet):
     serializer_class = PlantTimeSeriesSerializer
 
 # counts
-class PlantCountView(APIView):
+class PlantStatsView(APIView):
     def get(self, request, format=None):
-        plantDict = { 'count': Plant.objects.count() }
-        return Response(plantDict)
+        print request.query_params
+        if 'count' in request.query_params:
+            count = True
+        try:
+            by = request.query_params['by']
+        except:
+            by = None
+        print by
+        try:
+            dc = request.query_params['DCRating']
+        except:
+            dc = None
+        print dc
+
+        if count:
+            plantDict = { 'count': Plant.objects.count() }
+            return Response(plantDict)
+
+        return Response("KLARN")
 
 class PlantDCCapacityView(APIView):
     def get(self, request, format=None):
+        print request.query_params
         plants = Plant.objects.all()
         capacity = 0.0
         for plant in plants:
