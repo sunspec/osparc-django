@@ -162,6 +162,15 @@ class PlantStatsView(APIView):
             capDict = { 'DCRating':capacity}
             return Response(capDict)
 
+        if 'StorageCapacity' in request.query_params:
+            plants = Plant.objects.all()
+            capacity = 0
+            for plant in plants:
+                if plant.storageOriginalCapacity is not None:
+                    capacity += plant.storageOriginalCapacity
+            capDict = { 'StorageCapacity':capacity}
+            return Response(capDict)
+
         return Response({"I don't understand the query string": queries.keys()[0]})
 
 
