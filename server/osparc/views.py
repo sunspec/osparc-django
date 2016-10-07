@@ -127,12 +127,14 @@ class PlantStatsView(APIView):
 
     def get(self, request, format=None):
 
-        queries = dict(request.query_params.iterlists())
         # print queries
+        print request.query_params
 
         if 'count' in request.query_params:
             if 'by' not in request.query_params:
                 return Response({ 'count': Plant.objects.count() })
+
+            queries = dict(request.query_params.iterlists())
 
             # 'by' is in the request
             year = False
@@ -171,7 +173,10 @@ class PlantStatsView(APIView):
             capDict = { 'StorageCapacity':capacity}
             return Response(capDict)
 
-        return Response({"I don't understand the query string": queries.keys()[0]})
+        if not dict(request.query_params.iterlists()):
+            return Response({"query string (e.g. '?count') required following URL"})
+
+        return Response({"I don't understand the query string": dict(request.query_params.iterlists()).keys()[0]})
 
 
 # swagger
