@@ -151,8 +151,7 @@ class PlantStatsView(APIView):
     def get(self, request, format=None):
 
         if not dict(request.query_params.iterlists()):
-            if 'by' not in request.query_params:
-                return Response(PlantStatsView.totals(self))
+            return Response(PlantStatsView.totals(self))
 
         queries = dict(request.query_params.iterlists())
 
