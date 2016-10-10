@@ -40,9 +40,15 @@ class PlantStatsView(APIView):
 
     def plantsByState(self,plants):
         result = collections.defaultdict(int)
-        print result
         for plant in plants:
             result[plant.state] += 1
+        return result
+
+    def plantsByYear(self,plants):
+        result = collections.defaultdict(int)
+        for plant in plants:
+            adate = plant.activationDate
+            result[adate.year] += 1
         return result
 
     def plantsByYearAndDCRating(self,plants):
@@ -125,56 +131,53 @@ class PlantStatsView(APIView):
                             result[str(yearBucket)]['>10MW'] += 1
             return result
 
+    def totals(self):
+        result = collections.defaultdict(dict)
+        result['count'] = Plant.objects.count()
+
+        plants = Plant.objects.all()
+        dcCap = 0.0
+        stCap = 0.0
+        for plant in plants:
+            dcCap += plant.DCRating
+            if plant.storageOriginalCapacity is not None:
+                stCap += plant.storageOriginalCapacity
+        result['DCRating'] = dcCap
+        result['StorageCapacity'] = stCap
+
+        return result
+
+
     def get(self, request, format=None):
 
-        # print queries
-        print request.query_params
-
-        if 'count' in request.query_params:
-            if 'by' not in request.query_params:
-                return Response({ 'count': Plant.objects.count() })
-
-            queries = dict(request.query_params.iterlists())
-
-            # 'by' is in the request
-            year = False
-            dc = False
-            state = False
-            by = queries['by']
-            if 'year' in by:
-                year = True
-            if 'DCRating' in by:
-                dc = True
-            if 'state' in by:
-                state = True
-
-            plants = Plant.objects.all()
-
-            if state == True:
-                return Response(PlantStatsView.plantsByState(self,plants))
-
-            if year == True and dc == True:
-                return Response(PlantStatsView.plantsByYearAndDCRating(self,plants))
-
-        if 'DCRating' in request.query_params:
-            plants = Plant.objects.all()
-            capacity = 0.0
-            for plant in plants:
-                capacity += plant.DCRating
-            capDict = { 'DCRating':capacity}
-            return Response(capDict)
-
-        if 'StorageCapacity' in request.query_params:
-            plants = Plant.objects.all()
-            capacity = 0
-            for plant in plants:
-                if plant.storageOriginalCapacity is not None:
-                    capacity += plant.storageOriginalCapacity
-            capDict = { 'StorageCapacity':capacity}
-            return Response(capDict)
-
         if not dict(request.query_params.iterlists()):
-            return Response({"query string (e.g. '?count') required following URL"})
+            if 'by' not in request.query_params:
+                return Response(PlantStatsView.totals(self))
+
+        queries = dict(request.query_params.iterlists())
+
+        # 'by' is in the request
+        year = False
+        dc = False
+        state = False
+        by = queries['by']
+        if 'year' in by:
+            year = True
+        if 'DCRating' in by:
+            dc = True
+        if 'state' in by:
+            state = True
+
+        plants = Plant.objects.all()
+
+        if state == True:
+            return Response(PlantStatsView.plantsByState(self,plants))
+
+        if year == True and dc == False:
+            return Response(PlantStatsView.plantsByYear(self,plants))
+
+        if year == True and dc == True:
+            return Response(PlantStatsView.plantsByYearAndDCRating(self,plants))
 
         return Response({"I don't understand the query string": dict(request.query_params.iterlists()).keys()[0]})
 
