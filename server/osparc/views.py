@@ -1,5 +1,7 @@
 from django.http import Http404
 import collections
+import datetime
+import sys
 
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, renderer_classes
@@ -35,7 +37,7 @@ class PlantTimeSeriesViewSet(viewsets.ModelViewSet):
     queryset = PlantTimeSeries.objects.all()
     serializer_class = PlantTimeSeriesSerializer
 
-# counts
+# stats
 class PlantStatsView(APIView):
 
     def plantsByState(self,plants):
@@ -179,6 +181,106 @@ class PlantStatsView(APIView):
                 return Response(PlantStatsView.plantsByYearAndDCRating(self,plants))
 
         return Response({"I don't understand the query string": dict(request.query_params.iterlists()).keys()[0]})
+
+# KPIs
+class PlantKPIsView(APIView):
+
+    def median(self,lst):
+        sortedLst = sorted(lst)
+        lstLen = len(lst)
+        index = (lstLen - 1) // 2
+        if (lstLen % 2):
+            return sortedLst[index]
+        else:
+            return (sortedLst[index] + sortedLst[index + 1])/2.0
+
+
+    def totals(self):
+
+        # DCRating and StorageCapacity
+        plants = Plant.objects.all()
+        dcCapList = list()
+        storCapList = list()
+
+        dcCapTotal = 0.0
+        dcCapMin = sys.float_info.max
+        dcCapMax = 0.0
+        dcCapFirstEntry = datetime.date.today()
+        dcCapLastEntry = datetime.datetime.strptime('01012001', '%d%m%Y').date()
+
+        storCapTotal = 0.0
+        storCapMin = sys.float_info.max
+        storCapMax = 0.0
+        storCapFirstEntry = datetime.date.today()
+        storCapLastEntry = datetime.datetime.strptime('01012001', '%d%m%Y').date()
+
+        for plant in plants:
+            if plant.DCRating is not None:
+                if plant.activationDate < dcCapFirstEntry:
+                    dcCapFirstEntry = plant.activationDate
+                if plant.activationDate > dcCapLastEntry:
+                    dcCapLastEntry = plant.activationDate
+                dcCapTotal += plant.DCRating
+                dcCapList.append(plant.DCRating)
+                if plant.DCRating < dcCapMin:
+                    dcCapMin = plant.DCRating
+                if plant.DCRating > dcCapMax:
+                    dcCapMax = plant.DCRating
+
+            if plant.storageOriginalCapacity is not None:
+                if plant.activationDate < storCapFirstEntry:
+                    storCapFirstEntry = plant.activationDate
+                if plant.activationDate > storCapLastEntry:
+                    storCapLastEntry = plant.activationDate
+                storCapTotal += plant.storageOriginalCapacity
+                storCapList.append(plant.storageOriginalCapacity)
+                if plant.storageOriginalCapacity < storCapMin:
+                    storCapMin = plant.storageOriginalCapacity
+                if plant.storageOriginalCapacity > storCapMax:
+                    storCapMax = plant.storageOriginalCapacity
+
+        result = collections.defaultdict(dict)
+
+        dcRating = collections.defaultdict(dict)
+        dcRating['plants'] = len(dcCapList)
+        dcRating['firstDay'] = dcCapFirstEntry
+        dcRating['lastDay'] = dcCapLastEntry
+        dcRating['min'] = dcCapMin
+        dcRating['max'] = dcCapMax
+        dcRating['mean'] = dcCapTotal / len(dcCapList)
+        dcRating['median'] = PlantKPIsView.median(self,dcCapList)
+        result['DCRating'] = dcRating
+
+        storCap = collections.defaultdict(dict)
+        if len(storCapList) > 0:
+            storCap['plants'] = len(storCapList)
+            storCap['firstDay'] = storCapFirstEntry
+            storCap['lastDay'] = storCapLastEntry
+            storCap['min'] = storCapMin
+            storCap['max'] = storCapMax
+            storCap['mean'] = storCapTotal / len(storCapList)
+            storCap['median'] = PlantKPIsView.median(self,storCapList)
+        else:
+            storCap['plants'] = 0
+            storCap['firstDay'] = datetime.datetime.strptime('01012001', '%d%m%Y').date()
+            storCap['lastDay'] = datetime.date.today()
+            storCap['min'] = 0.0
+            storCap['max'] = 0.0
+            storCap['mean'] = 0.0
+            storCap['median'] = 0.0
+        result['StorageCapacity'] = storCap
+
+        return result
+
+    def get(self, request, format=None):
+
+        if not dict(request.query_params.iterlists()):
+            return Response(PlantKPIsView.totals(self))
+
+        queries = dict(request.query_params.iterlists())
+
+        return Response({"I don't understand the query string": dict(request.query_params.iterlists()).keys()[0]})
+       
 
 
 # swagger

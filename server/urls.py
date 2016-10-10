@@ -12,6 +12,7 @@ router.register(prefix='planttimeseries', viewset=views.PlantTimeSeriesViewSet)
 
 urlpatterns = [
 	url('^api/plants/stats',views.PlantStatsView.as_view()),
+	url('^api/plants/kpis',views.PlantKPIsView.as_view()),
 	url('^api/',include(router.urls)),
 	url('^docs/',views.schema_view)
 ]

@@ -48,8 +48,8 @@ class Plant(models.Model):
     tilt = models.IntegerField()
     azimuth = models.IntegerField()
     # from StorageSystem
-    storageOriginalCapacity = models.IntegerField(blank=True,null=True)
-    storageCurrentCapacity  = models.IntegerField(blank=True,null=True)
+    storageOriginalCapacity = models.FloatField(blank=True,null=True)
+    storageCurrentCapacity  = models.FloatField(blank=True,null=True)
     storageStateOfCharge = models.FloatField(blank=True,null=True)
     # plant-meta-meta data
     accountID = models.CharField(max_length=250)
