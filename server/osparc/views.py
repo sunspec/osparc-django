@@ -156,28 +156,28 @@ class PlantStatsView(APIView):
 
         queries = dict(request.query_params.iterlists())
 
-        # 'by' is in the request
-        year = False
-        dc = False
-        state = False
-        by = queries['by']
-        if 'year' in by:
-            year = True
-        if 'DCRating' in by:
-            dc = True
-        if 'state' in by:
-            state = True
+        if 'by' in request.query_params:
+            year = False
+            dc = False
+            state = False
+            by = queries['by']
+            if 'year' in by:
+                year = True
+            if 'DCRating' in by:
+                dc = True
+            if 'state' in by:
+                state = True
 
-        plants = Plant.objects.all()
+            plants = Plant.objects.all()
 
-        if state == True:
-            return Response(PlantStatsView.plantsByState(self,plants))
+            if state == True:
+                return Response(PlantStatsView.plantsByState(self,plants))
 
-        if year == True and dc == False:
-            return Response(PlantStatsView.plantsByYear(self,plants))
+            if year == True and dc == False:
+                return Response(PlantStatsView.plantsByYear(self,plants))
 
-        if year == True and dc == True:
-            return Response(PlantStatsView.plantsByYearAndDCRating(self,plants))
+            if year == True and dc == True:
+                return Response(PlantStatsView.plantsByYearAndDCRating(self,plants))
 
         return Response({"I don't understand the query string": dict(request.query_params.iterlists()).keys()[0]})
 
