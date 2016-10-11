@@ -107,9 +107,9 @@ class PlantTimeSeries(models.Model):
     sampleInterval = models.IntegerField()
     WH_DIFF = models.FloatField()
     GHI_DIFF = models.FloatField()
-    TMPAMB_AVG = models.FloatField()
+    TMPAMB_AVG = models.FloatField(blank=True,null=True)
     # from PVArrayTimeSeries
-    HPOA_DIFF = models.FloatField()
+    HPOA_DIFF = models.FloatField(blank=True,null=True)
     # plantTimeSeries-meta-meta data
     plant = models.ForeignKey(Plant)
     recordStatus = models.IntegerField(default=1) # RECORD_STATUS_ACTIVE

@@ -28,5 +28,5 @@ class PlantSerializer(serializers.ModelSerializer):
 class PlantTimeSeriesSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlantTimeSeries
-        fields = ("timeStamp","sampleInterval","WH_DIFF","GHI_DIFF","TMPAMB_AVG","plant","recordStatus")
+        fields = ("timeStamp","sampleInterval","WH_DIFF","GHI_DIFF","TMPAMB_AVG","HPOA_DIFF","plant","recordStatus")
 
