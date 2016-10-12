@@ -2,6 +2,7 @@ from django.http import Http404
 import collections
 import datetime
 import sys
+import math
 
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, renderer_classes
@@ -15,6 +16,7 @@ from rest_framework import status
 from osparc.models import Account,UploadActivity,PlantType,Plant,PlantTimeSeries
 from osparc.serializers import AccountSerializer,UploadActivitySerializer,PlantTypeSerializer,PlantSerializer
 from osparc.serializers import PlantTimeSeriesSerializer
+from .mixins import KpiMixin
 
 
 class AccountViewSet(viewsets.ModelViewSet):
@@ -183,31 +185,29 @@ class PlantStatsView(APIView):
         return Response({"I don't understand the query string": dict(request.query_params.iterlists()).keys()[0]})
 
 # KPIs
+class KpiTimeseriesElement:
+    def __init__(self,plantId,timeStamp,value):
+        self.plantId = plantId
+        self.timeStamp = timeStamp
+        self.value = value
+
 class PlantKPIsView(APIView):
-
-    def median(self,lst):
-        sortedLst = sorted(lst)
-        lstLen = len(lst)
-        index = (lstLen - 1) // 2
-        if (lstLen % 2):
-            return sortedLst[index]
-        else:
-            return (sortedLst[index] + sortedLst[index + 1])/2.0
-
 
     def totals(self):
 
+        mixin = KpiMixin()
+
         # DCRating and StorageCapacity
         plants = Plant.objects.all()
-        dcCapList = list()
-        storCapList = list()
 
+        dcCapList = list()
         dcCapTotal = 0.0
         dcCapMin = sys.float_info.max
         dcCapMax = 0.0
         dcCapFirstEntry = datetime.date.today()
         dcCapLastEntry = datetime.datetime.strptime('01012001', '%d%m%Y').date()
 
+        storCapList = list()
         storCapTotal = 0.0
         storCapMin = sys.float_info.max
         storCapMax = 0.0
@@ -247,8 +247,9 @@ class PlantKPIsView(APIView):
         dcRating['lastDay'] = dcCapLastEntry
         dcRating['min'] = dcCapMin
         dcRating['max'] = dcCapMax
-        dcRating['mean'] = dcCapTotal / len(dcCapList)
-        dcRating['median'] = PlantKPIsView.median(self,dcCapList)
+        mean = dcCapTotal / len(dcCapList)
+        dcRating['mean'] = math.ceil( mean*10/10)
+        dcRating['median'] = mixin.median(dcCapList)
         result['DCRating'] = dcRating
 
         storCap = collections.defaultdict(dict)
@@ -258,8 +259,9 @@ class PlantKPIsView(APIView):
             storCap['lastDay'] = storCapLastEntry
             storCap['min'] = storCapMin
             storCap['max'] = storCapMax
-            storCap['mean'] = storCapTotal / len(storCapList)
-            storCap['median'] = PlantKPIsView.median(self,storCapList)
+            mean = storCapTotal / len(storCapList)
+            storCap['mean'] = math.ceil(mean*10/10)
+            storCap['median'] = mixin.median(mixin,storCapList)
         else:
             storCap['plants'] = 0
             storCap['firstDay'] = datetime.datetime.strptime('01012001', '%d%m%Y').date()
@@ -270,6 +272,51 @@ class PlantKPIsView(APIView):
             storCap['median'] = 0.0
         result['StorageCapacity'] = storCap
 
+        yieldList = list()
+        yieldTotal = 0.0
+        yieldMin = sys.float_info.max
+        yieldMax = 0.0
+        yieldFirstEntry = datetime.date.today()
+        yieldLastEntry = datetime.datetime.strptime('01012001', '%d%m%Y').date()
+
+        prList = list()
+        prTotal = 0.0
+        prMin = sys.float_info.max
+        prMax = 0.0
+        prFirstEntry = datetime.date.today()
+        prLastEntry = datetime.datetime.strptime('01012001', '%d%m%Y').date()
+
+        sohList = list()
+        sohTotal = 0.0
+        sohMin = sys.float_info.max
+        sohMax = 0.0
+        sohFirstEntry = datetime.date.today()
+        sohLastEntry = datetime.datetime.strptime('01012001', '%d%m%Y').date()
+
+        #  OK now do the timeseries-related KPIs
+        timeseries = PlantTimeSeries.objects.all()
+
+        # First, get a list of each element that will contribute to each KPI
+        # We get a separate list per KPI because not all time series elements contain all measurements
+        ghiList = list()
+        whList = list()
+        for entry in timeseries:
+            if entry.GHI_DIFF is not None:
+                ghiList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp,entry.GHI_DIFF) )
+            if entry.WH_DIFF is not None:
+                whList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp,entry.WH_DIFF) )
+
+        # Now calculate the KPIs
+
+        # 1. GHI (daily insolation)
+        kpi = KpiMixin.buildKpi(mixin,ghiList)
+        result['DailyInsolation'] = kpi
+
+        # 2. WH (daily generated energy)
+        kpi = KpiMixin.buildKpi(mixin,whList)
+        result['DailyGeneratedEnergy'] = kpi
+        # to be done
+
         return result
 
     def get(self, request, format=None):
@@ -277,10 +324,7 @@ class PlantKPIsView(APIView):
         if not dict(request.query_params.iterlists()):
             return Response(PlantKPIsView.totals(self))
 
-        queries = dict(request.query_params.iterlists())
-
         return Response({"I don't understand the query string": dict(request.query_params.iterlists()).keys()[0]})
-       
 
 
 # swagger
