@@ -1,9 +1,9 @@
 import datetime
 import sys
 import collections
-import math
 
 class KpiMixin(object):
+
     def median(self,lst):
         sortedLst = sorted(lst)
         lstLen = len(lst)
@@ -42,11 +42,22 @@ class KpiMixin(object):
         kpi['plants'] = numberOfPlants
         kpi['firstDay'] = firstEntry
         kpi['lastDay'] = lastEntry
-        kpi['min'] = math.ceil( minValue*10/10 )
-        kpi['max'] = math.ceil( maxValue*10/10 )
-        kpi['mean'] = math.ceil( (total/len(entryList)*10)/10 )
-        kpi['median'] = math.ceil( (KpiMixin.median(self,valueList))*10/10 )
-
+        kpi['min'] = round( minValue,1 )
+        kpi['max'] = round( maxValue,1 )
+        kpi['mean'] = round(total/len(entryList),1)
+        kpi['median'] = round( KpiMixin.median(self,valueList),1 )
         return kpi
+
+    def divide( self, dict1, dict2 ):
+        kpi = collections.defaultdict(dict)
+        kpi['plants'] = min( dict1['plants'],dict2['plants'] )
+        kpi['firstDay'] = max( dict1['firstDay'],dict2['firstDay'] )
+        kpi['lastDay'] = min( dict1['lastDay'],dict2['lastDay'] )
+        kpi['min'] = round(dict1['min'] / dict2['min'],2)
+        kpi['max'] = round(dict1['max'] / dict2['max'],2)
+        kpi['mean'] = round(dict1['mean'] / dict2['mean'],2)
+        kpi['median'] = round(dict1['median'] / dict2['median'],2)
+        return kpi
+
 
  

@@ -301,12 +301,15 @@ class PlantKPIsView(APIView):
         ghiList = list()
         whList = list()
         yfList = list()
+        yrList = list()
         for entry in timeseries:
             if entry.GHI_DIFF is not None:
                 ghiList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp,entry.GHI_DIFF,1) )
             if entry.WH_DIFF is not None:
                 whList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp,entry.WH_DIFF,1) )
                 yfList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp,entry.WH_DIFF,entry.plant.DCRating) )
+            if entry.HPOA_DIFF is not None:
+                yrList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp,entry.HPOA_DIFF,1000) )
 
         # Now calculate the KPIs
 
@@ -318,10 +321,14 @@ class PlantKPIsView(APIView):
         kpi = KpiMixin.buildKpi(mixin,whList)
         result['MonthlyGeneratedEnergy'] = kpi
 
-        # 3. YF (yield kWh/kWp)
-        kpi = KpiMixin.buildKpi(mixin,yfList)
-        result['MonthlyYield'] = kpi
-        # to be done
+        # 3. YF (generated yield kWh/kWp)
+        kpiYf = KpiMixin.buildKpi(mixin,yfList)
+        result['MonthlyYield'] = kpiYf
+        
+        # 4. YR (hpoa yield kWh/kWp)
+        kpiYr = KpiMixin.buildKpi(mixin,yrList)
+        kpi = KpiMixin.divide(mixin,kpiYf,kpiYr)
+        result['PerformanceRatio'] = kpi
 
         return result
 
