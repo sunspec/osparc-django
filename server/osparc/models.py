@@ -41,7 +41,7 @@ class Plant(models.Model):
     longitude = models.CharField(max_length=16,default='none')
     timeZone = models.CharField(max_length=64,default='none')
     weatherSource = models.CharField(max_length=32, blank=True, null=True) # CPR or local
-    DCRating = models.FloatField(blank=True, null=True)     # watts (NOT kilo-watts!)
+    DCRating = models.FloatField(blank=True, null=True)     # watts (NOT kilo-watts)
     derate = models.FloatField(blank=True, null=True)
     # from PVArray
     trackerType = models.CharField(max_length=32)
@@ -105,8 +105,7 @@ class UploadActivity(models.Model):
 class PlantTimeSeries(models.Model):
     timeStamp = models.DateTimeField()
     sampleInterval = models.IntegerField()
-    # WH_LAST = models.FloatField()           # watt-hours (NOT kilowatt-hours) total over lifetime
-    WH_DIFF = models.FloatField()           # watt-hours since last entry
+    WH_DIFF = models.FloatField()           # kWh since last entry
     GHI_DIFF = models.FloatField()
     TMPAMB_AVG = models.FloatField(blank=True,null=True)
     # from PVArrayTimeSeries
@@ -119,6 +118,7 @@ class PlantTimeSeries(models.Model):
 
 
 
+# | WH_LAST           | float      | YES  |     | NULL    | all NULL
 # | W_AVG             | float      | YES  |     | NULL    | all NULL
 # | WNDSPD_AVG        | float      | YES  |     | NULL    | all NULL
 # | PRES_AVG          | float      | YES  |     | NULL    | all NULL

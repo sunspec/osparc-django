@@ -255,7 +255,8 @@ class PlantKPIsView(APIView):
         result['MonthlyYield'] = KpiMixin.buildKpi(mixin,yfList)
         
         # 4. YR (hpoa yield kWh/kWp)
-        result['PerformanceRatio'] = KpiMixin.divide(mixin,result['MonthlyYield'],KpiMixin.buildKpi(mixin,yrList))
+        if len(yrList) > 0:
+            result['PerformanceRatio'] = KpiMixin.divide(mixin,result['MonthlyYield'],KpiMixin.buildKpi(mixin,yrList))
 
         return result
 
