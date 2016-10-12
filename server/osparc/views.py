@@ -186,10 +186,10 @@ class PlantStatsView(APIView):
 
 # KPIs
 class KpiTimeseriesElement:
-    def __init__(self,plantId,timeStamp,value):
+    def __init__(self,plantId,timeStamp,numerator,denominator):
         self.plantId = plantId
         self.timeStamp = timeStamp
-        self.value = value
+        self.value = numerator/denominator
 
 class PlantKPIsView(APIView):
 
@@ -300,21 +300,27 @@ class PlantKPIsView(APIView):
         # We get a separate list per KPI because not all time series elements contain all measurements
         ghiList = list()
         whList = list()
+        yfList = list()
         for entry in timeseries:
             if entry.GHI_DIFF is not None:
-                ghiList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp,entry.GHI_DIFF) )
+                ghiList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp,entry.GHI_DIFF,1) )
             if entry.WH_DIFF is not None:
-                whList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp,entry.WH_DIFF) )
+                whList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp,entry.WH_DIFF,1) )
+                yfList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp,entry.WH_DIFF,entry.plant.DCRating) )
 
         # Now calculate the KPIs
 
         # 1. GHI (daily insolation)
         kpi = KpiMixin.buildKpi(mixin,ghiList)
-        result['DailyInsolation'] = kpi
+        result['MonthlyInsolation'] = kpi
 
         # 2. WH (daily generated energy)
         kpi = KpiMixin.buildKpi(mixin,whList)
-        result['DailyGeneratedEnergy'] = kpi
+        result['MonthlyGeneratedEnergy'] = kpi
+
+        # 3. YF (yield kWh/kWp)
+        kpi = KpiMixin.buildKpi(mixin,yfList)
+        result['MonthlyYield'] = kpi
         # to be done
 
         return result

@@ -42,10 +42,10 @@ class KpiMixin(object):
         kpi['plants'] = numberOfPlants
         kpi['firstDay'] = firstEntry
         kpi['lastDay'] = lastEntry
-        kpi['min'] = minValue
-        kpi['max'] = maxValue
+        kpi['min'] = math.ceil( minValue*10/10 )
+        kpi['max'] = math.ceil( maxValue*10/10 )
         kpi['mean'] = math.ceil( (total/len(entryList)*10)/10 )
-        kpi['median'] = KpiMixin.median(self,valueList)
+        kpi['median'] = math.ceil( (KpiMixin.median(self,valueList))*10/10 )
 
         return kpi
 
