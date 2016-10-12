@@ -17,26 +17,31 @@ class KpiMixin(object):
         firstEntry = datetime.date.today()
         lastEntry = datetime.datetime.strptime('01012001', '%d%m%Y').date()
         total = 0
-        minValue = sys.float_info.max
+        if len(entryList) > 0:
+            minValue = sys.float_info.max
+        else:
+            minValue = 0
         maxValue = 0
         valueList = list()
         currentPlant = 0
         numberOfPlants = 0
-        for entry in entryList:
-            if entry.plantId != currentPlant:
-                currentPlant = entry.plantId
-                numberOfPlants = numberOfPlants+1 # there are multiple entries from the same plant
-            # print( "currentPlant=%d, entry.plantId=%d, numberOfPlants=%d" % (currentPlant,entry.plantId,numberOfPlants))
-            if entry.timeStamp.date() < firstEntry:
-                firstEntry = entry.timeStamp.date()
-            if entry.timeStamp.date() > lastEntry:
-                lastEntry = entry.timeStamp.date()
-            total += entry.value
-            if entry.value < minValue:
-                minValue = entry.value
-            if entry.value > maxValue:
-                maxValue = entry.value
-            valueList.append(entry.value)
+
+        if len(entryList) > 0:
+            for entry in entryList:
+                if entry.plantId != currentPlant:
+                    currentPlant = entry.plantId
+                    numberOfPlants = numberOfPlants+1 # there are multiple entries from the same plant
+                # print( "currentPlant=%d, entry.plantId=%d, numberOfPlants=%d" % (currentPlant,entry.plantId,numberOfPlants))
+                if entry.timeStamp < firstEntry:
+                    firstEntry = entry.timeStamp
+                if entry.timeStamp > lastEntry:
+                    lastEntry = entry.timeStamp
+                total += entry.value
+                if entry.value < minValue:
+                    minValue = entry.value
+                if entry.value > maxValue:
+                    maxValue = entry.value
+                valueList.append(entry.value)
 
         kpi = collections.defaultdict(dict)
         kpi['plants'] = numberOfPlants
@@ -44,8 +49,14 @@ class KpiMixin(object):
         kpi['lastDay'] = lastEntry
         kpi['min'] = round( minValue,1 )
         kpi['max'] = round( maxValue,1 )
-        kpi['mean'] = round(total/len(entryList),1)
-        kpi['median'] = round( KpiMixin.median(self,valueList),1 )
+        if len(entryList) > 0:
+            kpi['mean'] = round(total/len(entryList),1)
+        else:
+            kpi['mean'] = 0
+        if len(valueList) > 0:
+            kpi['median'] = round( KpiMixin.median(self,valueList),1 )
+        else:
+            kpi['median'] = 0
         return kpi
 
     def divide( self, dict1, dict2 ):

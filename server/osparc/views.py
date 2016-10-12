@@ -200,100 +200,32 @@ class PlantKPIsView(APIView):
         # DCRating and StorageCapacity
         plants = Plant.objects.all()
 
-        dcCapList = list()
-        dcCapTotal = 0.0
-        dcCapMin = sys.float_info.max
-        dcCapMax = 0.0
-        dcCapFirstEntry = datetime.date.today()
-        dcCapLastEntry = datetime.datetime.strptime('01012001', '%d%m%Y').date()
-
+        dcList = list()
         storCapList = list()
-        storCapTotal = 0.0
-        storCapMin = sys.float_info.max
-        storCapMax = 0.0
-        storCapFirstEntry = datetime.date.today()
-        storCapLastEntry = datetime.datetime.strptime('01012001', '%d%m%Y').date()
-
+        storSOHList = list()
         for plant in plants:
             if plant.DCRating is not None:
-                if plant.activationDate < dcCapFirstEntry:
-                    dcCapFirstEntry = plant.activationDate
-                if plant.activationDate > dcCapLastEntry:
-                    dcCapLastEntry = plant.activationDate
-                dcCapTotal += plant.DCRating
-                dcCapList.append(plant.DCRating)
-                if plant.DCRating < dcCapMin:
-                    dcCapMin = plant.DCRating
-                if plant.DCRating > dcCapMax:
-                    dcCapMax = plant.DCRating
-
+                dcList.append( KpiTimeseriesElement(plant.id,plant.activationDate,plant.DCRating,1) )
             if plant.storageOriginalCapacity is not None:
-                if plant.activationDate < storCapFirstEntry:
-                    storCapFirstEntry = plant.activationDate
-                if plant.activationDate > storCapLastEntry:
-                    storCapLastEntry = plant.activationDate
-                storCapTotal += plant.storageOriginalCapacity
-                storCapList.append(plant.storageOriginalCapacity)
-                if plant.storageOriginalCapacity < storCapMin:
-                    storCapMin = plant.storageOriginalCapacity
-                if plant.storageOriginalCapacity > storCapMax:
-                    storCapMax = plant.storageOriginalCapacity
+                storCapList.append( KpiTimeseriesElement(plant.id,plant.activationDate,plant.storageOriginalCapacity,1) )
+                if plant.storageCurrentCapacity is not None:
+                    storSOHList.append( KpiTimeseriesElement(plant.id,plant.activationDate,plant.storageCurrentCapacity,plant.storageOriginalCapacity) )
+                else:
+                    storCapList.append( KpiTimeseriesElement(plant.id,plant.activationDate,plant.storageOriginalCapacity,1) )
 
+        # Fill in the plant-related KPIs
         result = collections.defaultdict(dict)
 
-        dcRating = collections.defaultdict(dict)
-        dcRating['plants'] = len(dcCapList)
-        dcRating['firstDay'] = dcCapFirstEntry
-        dcRating['lastDay'] = dcCapLastEntry
-        dcRating['min'] = dcCapMin
-        dcRating['max'] = dcCapMax
-        mean = dcCapTotal / len(dcCapList)
-        dcRating['mean'] = math.ceil( mean*10/10)
-        dcRating['median'] = mixin.median(dcCapList)
-        result['DCRating'] = dcRating
+        # 1. DC Power Rating (rated DC power)
+        result['DCRating'] = KpiMixin.buildKpi(mixin,dcList)
 
-        storCap = collections.defaultdict(dict)
-        if len(storCapList) > 0:
-            storCap['plants'] = len(storCapList)
-            storCap['firstDay'] = storCapFirstEntry
-            storCap['lastDay'] = storCapLastEntry
-            storCap['min'] = storCapMin
-            storCap['max'] = storCapMax
-            mean = storCapTotal / len(storCapList)
-            storCap['mean'] = math.ceil(mean*10/10)
-            storCap['median'] = mixin.median(mixin,storCapList)
-        else:
-            storCap['plants'] = 0
-            storCap['firstDay'] = datetime.datetime.strptime('01012001', '%d%m%Y').date()
-            storCap['lastDay'] = datetime.date.today()
-            storCap['min'] = 0.0
-            storCap['max'] = 0.0
-            storCap['mean'] = 0.0
-            storCap['median'] = 0.0
-        result['StorageCapacity'] = storCap
+        # 2. Storage Capacity
+        result['StorageCapacity'] = KpiMixin.buildKpi(mixin,storCapList)
 
-        yieldList = list()
-        yieldTotal = 0.0
-        yieldMin = sys.float_info.max
-        yieldMax = 0.0
-        yieldFirstEntry = datetime.date.today()
-        yieldLastEntry = datetime.datetime.strptime('01012001', '%d%m%Y').date()
+        # 3. Storage State of Health
+        result['StorageStateOfHealth'] = KpiMixin.buildKpi(mixin,storSOHList)
 
-        prList = list()
-        prTotal = 0.0
-        prMin = sys.float_info.max
-        prMax = 0.0
-        prFirstEntry = datetime.date.today()
-        prLastEntry = datetime.datetime.strptime('01012001', '%d%m%Y').date()
-
-        sohList = list()
-        sohTotal = 0.0
-        sohMin = sys.float_info.max
-        sohMax = 0.0
-        sohFirstEntry = datetime.date.today()
-        sohLastEntry = datetime.datetime.strptime('01012001', '%d%m%Y').date()
-
-        #  OK now do the timeseries-related KPIs
+        #  Now the timeseries-related KPIs
         timeseries = PlantTimeSeries.objects.all()
 
         # First, get a list of each element that will contribute to each KPI
@@ -304,31 +236,26 @@ class PlantKPIsView(APIView):
         yrList = list()
         for entry in timeseries:
             if entry.GHI_DIFF is not None:
-                ghiList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp,entry.GHI_DIFF,1) )
+                ghiList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp.date(),entry.GHI_DIFF,1) )
             if entry.WH_DIFF is not None:
-                whList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp,entry.WH_DIFF,1) )
-                yfList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp,entry.WH_DIFF,entry.plant.DCRating) )
+                whList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp.date(),entry.WH_DIFF,1) )
+                yfList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp.date(),entry.WH_DIFF,entry.plant.DCRating) )
             if entry.HPOA_DIFF is not None:
-                yrList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp,entry.HPOA_DIFF,1000) )
+                yrList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp.date(),entry.HPOA_DIFF,1000) )
 
         # Now calculate the KPIs
 
         # 1. GHI (daily insolation)
-        kpi = KpiMixin.buildKpi(mixin,ghiList)
-        result['MonthlyInsolation'] = kpi
+        result['MonthlyInsolation'] = KpiMixin.buildKpi(mixin,ghiList)
 
         # 2. WH (daily generated energy)
-        kpi = KpiMixin.buildKpi(mixin,whList)
-        result['MonthlyGeneratedEnergy'] = kpi
+        result['MonthlyGeneratedEnergy'] = KpiMixin.buildKpi(mixin,whList)
 
         # 3. YF (generated yield kWh/kWp)
-        kpiYf = KpiMixin.buildKpi(mixin,yfList)
-        result['MonthlyYield'] = kpiYf
+        result['MonthlyYield'] = KpiMixin.buildKpi(mixin,yfList)
         
         # 4. YR (hpoa yield kWh/kWp)
-        kpiYr = KpiMixin.buildKpi(mixin,yrList)
-        kpi = KpiMixin.divide(mixin,kpiYf,kpiYr)
-        result['PerformanceRatio'] = kpi
+        result['PerformanceRatio'] = KpiMixin.divide(mixin,result['MonthlyYield'],KpiMixin.buildKpi(mixin,yrList))
 
         return result
 
