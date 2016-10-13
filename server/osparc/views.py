@@ -40,7 +40,7 @@ class PlantTimeSeriesViewSet(viewsets.ModelViewSet):
     serializer_class = PlantTimeSeriesSerializer
 
 # stats
-class PlantStatsView(APIView):
+class StatsView(APIView):
 
     def plantsByState(self,plants):
         result = collections.defaultdict(int)
@@ -123,13 +123,13 @@ class PlantStatsView(APIView):
                 for yearBucket in [2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018]:
                     if adate.year == yearBucket:
                         # for rangeBucket in [[0,10],[10,100],[100,1000],[1000,10000],[10000,sys.maxint]:
-                        if plant.DCRating < 10:
+                        if plant.DCRating/1000 < 10:
                             result[str(yearBucket)]['<10kW'] += 1
-                        elif plant.DCRating < 100:
+                        elif plant.DCRating/1000 < 100:
                             result[str(yearBucket)]['10-100kW'] += 1
-                        elif plant.DCRating < 1000:
+                        elif plant.DCRating/1000 < 1000:
                             result[str(yearBucket)]['100kW-1MW'] += 1
-                        elif plant.DCRating < 10000:
+                        elif plant.DCRating/1000 < 10000:
                             result[str(yearBucket)]['1-10MW'] += 1
                         else:
                             result[str(yearBucket)]['>10MW'] += 1
@@ -155,7 +155,7 @@ class PlantStatsView(APIView):
     def get(self, request, format=None):
 
         if not dict(request.query_params.iterlists()):
-            return Response(PlantStatsView.totals(self))
+            return Response(StatsView.totals(self))
 
         queries = dict(request.query_params.iterlists())
 
@@ -174,13 +174,13 @@ class PlantStatsView(APIView):
             plants = Plant.objects.all()
 
             if state == True:
-                return Response(PlantStatsView.plantsByState(self,plants))
+                return Response(StatsView.plantsByState(self,plants))
 
             if year == True and dc == False:
-                return Response(PlantStatsView.plantsByYear(self,plants))
+                return Response(StatsView.plantsByYear(self,plants))
 
             if year == True and dc == True:
-                return Response(PlantStatsView.plantsByYearAndDCRating(self,plants))
+                return Response(StatsView.plantsByYearAndDCRating(self,plants))
 
         return Response({"I don't understand the query string": dict(request.query_params.iterlists()).keys()[0]})
 
@@ -191,7 +191,7 @@ class KpiTimeseriesElement:
         self.timeStamp = timeStamp
         self.value = numerator/denominator
 
-class PlantKPIsView(APIView):
+class KPIsView(APIView):
 
     def totals(self):
 
@@ -263,7 +263,7 @@ class PlantKPIsView(APIView):
     def get(self, request, format=None):
 
         if not dict(request.query_params.iterlists()):
-            return Response(PlantKPIsView.totals(self))
+            return Response(KPIsView.totals(self))
 
         return Response({"I don't understand the query string": dict(request.query_params.iterlists()).keys()[0]})
 
