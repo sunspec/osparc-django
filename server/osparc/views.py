@@ -103,7 +103,7 @@ class StatsView(APIView):
             result['2015']['100kW-1MW'] = 0
             result['2015']['1-10MW'] = 0
             result['2015']['>10MW'] = 0
-            result['2015']['<10kW'] = 0
+            result['2016']['<10kW'] = 0
             result['2016']['10-100kW'] = 0
             result['2016']['100kW-1MW'] = 0
             result['2016']['1-10MW'] = 0
