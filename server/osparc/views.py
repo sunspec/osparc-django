@@ -137,7 +137,7 @@ class StatsView(APIView):
 
     def totals(self):
         result = collections.defaultdict(dict)
-        result['Count'] = Plant.objects.count()
+        result['count'] = Plant.objects.count()
 
         plants = Plant.objects.all()
         dcCap = 0.0
@@ -146,7 +146,6 @@ class StatsView(APIView):
             dcCap += plant.dcrating
             if plant.storageoriginalcapacity is not None:
                 stCap += plant.storageoriginalcapacity
-        print dcCap
         result['DCRating'] = dcCap
         result['StorageCapacity'] = stCap
 
@@ -167,7 +166,7 @@ class StatsView(APIView):
             by = queries['by']
             if 'year' in by:
                 year = True
-            if 'dcrating' in by:
+            if 'DCRating' in by:
                 dc = True
             if 'state' in by:
                 state = True
