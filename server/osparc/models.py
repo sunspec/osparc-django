@@ -116,13 +116,16 @@ class PlantTimeSeries(models.Model):
     def __str__(self):
         return self.name
 
-class Total(models.Model):
+# class Total(models.Model):
+#     totaldcrating = models.FloatField(blank=True, null=True)
+#     totalstoragecapacity = models.FloatField(blank=True, null=True)
+#     class Meta:
+#         managed = False
+#         db_table = 'osparc_total'
+
+class KPI(models.Model):
     totaldcrating = models.FloatField(blank=True, null=True)
     totalstoragecapacity = models.FloatField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'osparc_total'
 
 
 # | WH_LAST           | float      | YES  |     | NULL    | all NULL

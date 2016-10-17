@@ -29,7 +29,7 @@ class PlantTimeSeriesSerializer(serializers.ModelSerializer):
         model = models.PlantTimeSeries
         fields = ("timestamp","sampleinterval","WH_DIFF","GHI_DIFF","TMPAMB_AVG","HPOA_DIFF","plant","recordstatus")
 
-class TotalSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Total
-        fields = ("totaldcrating","totalstoragecapacity")
+# class TotalSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = models.Total
+#         fields = ("totaldcrating","totalstoragecapacity")

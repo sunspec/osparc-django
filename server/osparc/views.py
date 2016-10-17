@@ -16,7 +16,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from osparc.models import Account,UploadActivity,PlantType,Plant,PlantTimeSeries,Total
+from osparc.models import Account,UploadActivity,PlantType,Plant,PlantTimeSeries
+# from osparc.models import Total
 from osparc.serializers import AccountSerializer,UploadActivitySerializer,PlantTypeSerializer,PlantSerializer
 from osparc.serializers import PlantTimeSeriesSerializer
 from .mixins import KpiMixin
