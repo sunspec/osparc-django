@@ -4,6 +4,9 @@ import datetime
 import sys
 import math
 
+#import library
+from django.db import connection
+
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework import response, schemas
@@ -13,7 +16,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from osparc.models import Account,UploadActivity,PlantType,Plant,PlantTimeSeries
+from osparc.models import Account,UploadActivity,PlantType,Plant,PlantTimeSeries,Total
 from osparc.serializers import AccountSerializer,UploadActivitySerializer,PlantTypeSerializer,PlantSerializer
 from osparc.serializers import PlantTimeSeriesSerializer
 from .mixins import KpiMixin
@@ -137,17 +140,20 @@ class StatsView(APIView):
 
     def totals(self):
         result = collections.defaultdict(dict)
+
         result['count'] = Plant.objects.count()
 
-        plants = Plant.objects.all()
-        dcCap = 0.0
-        stCap = 0.0
-        for plant in plants:
-            dcCap += plant.dcrating
-            if plant.storageoriginalcapacity is not None:
-                stCap += plant.storageoriginalcapacity
-        result['DCRating'] = dcCap
-        result['StorageCapacity'] = stCap
+        # osparc_total is a view containing the sums of dcrating and storageorigcapacity.
+        # The following abomination is required to read views. As if that were not abominable
+        # enough, you have to create the view manually, separate from makemigrations.
+        # There's a good chance I'll replace this with a table that I populate in code whenever
+        # a plant is added..
+        cursor = connection.cursor()
+        sql_string = 'SELECT * FROM osparc_total'
+        cursor.execute(sql_string)
+        dbRes = cursor.fetchall()
+        result['DCRating'] = dbRes[0][0]
+        result['StorageCapacity'] = dbRes[0][1]
 
         return result
 
