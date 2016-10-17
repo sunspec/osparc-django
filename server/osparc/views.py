@@ -51,12 +51,12 @@ class StatsView(APIView):
     def plantsByYear(self,plants):
         result = collections.defaultdict(int)
         for plant in plants:
-            adate = plant.activationDate
+            adate = plant.activationdate
             result[adate.year] += 1
         return result
 
-    def plantsByYearAndDCRating(self,plants):
-            # there are 12 years and 5 DCRating buckets
+    def plantsByYearAnddcrating(self,plants):
+            # there are 12 years and 5 dcrating buckets
             result = collections.defaultdict(dict)
             result['2007']['<10kW'] = 0
             result['2007']['10-100kW'] = 0
@@ -119,17 +119,17 @@ class StatsView(APIView):
             result['2018']['1-10MW'] = 0
             result['2018']['>10MW'] = 0
             for plant in plants:
-                adate = plant.activationDate
+                adate = plant.activationdate
                 for yearBucket in [2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018]:
                     if adate.year == yearBucket:
                         # for rangeBucket in [[0,10],[10,100],[100,1000],[1000,10000],[10000,sys.maxint]:
-                        if plant.DCRating/1000 < 10:
+                        if plant.dcrating/1000 < 10:
                             result[str(yearBucket)]['<10kW'] += 1
-                        elif plant.DCRating/1000 < 100:
+                        elif plant.dcrating/1000 < 100:
                             result[str(yearBucket)]['10-100kW'] += 1
-                        elif plant.DCRating/1000 < 1000:
+                        elif plant.dcrating/1000 < 1000:
                             result[str(yearBucket)]['100kW-1MW'] += 1
-                        elif plant.DCRating/1000 < 10000:
+                        elif plant.dcrating/1000 < 10000:
                             result[str(yearBucket)]['1-10MW'] += 1
                         else:
                             result[str(yearBucket)]['>10MW'] += 1
@@ -137,15 +137,16 @@ class StatsView(APIView):
 
     def totals(self):
         result = collections.defaultdict(dict)
-        result['count'] = Plant.objects.count()
+        result['Count'] = Plant.objects.count()
 
         plants = Plant.objects.all()
         dcCap = 0.0
         stCap = 0.0
         for plant in plants:
-            dcCap += plant.DCRating
-            if plant.storageOriginalCapacity is not None:
-                stCap += plant.storageOriginalCapacity
+            dcCap += plant.dcrating
+            if plant.storageoriginalcapacity is not None:
+                stCap += plant.storageoriginalcapacity
+        print dcCap
         result['DCRating'] = dcCap
         result['StorageCapacity'] = stCap
 
@@ -166,7 +167,7 @@ class StatsView(APIView):
             by = queries['by']
             if 'year' in by:
                 year = True
-            if 'DCRating' in by:
+            if 'dcrating' in by:
                 dc = True
             if 'state' in by:
                 state = True
@@ -180,15 +181,15 @@ class StatsView(APIView):
                 return Response(StatsView.plantsByYear(self,plants))
 
             if year == True and dc == True:
-                return Response(StatsView.plantsByYearAndDCRating(self,plants))
+                return Response(StatsView.plantsByYearAnddcrating(self,plants))
 
         return Response({"I don't understand the query string": dict(request.query_params.iterlists()).keys()[0]})
 
 # KPIs
 class KpiTimeseriesElement:
-    def __init__(self,plantId,timeStamp,numerator,denominator):
+    def __init__(self,plantId,timestamp,numerator,denominator):
         self.plantId = plantId
-        self.timeStamp = timeStamp
+        self.timestamp = timestamp
         self.value = numerator/denominator
 
 class KPIsView(APIView):
@@ -197,21 +198,21 @@ class KPIsView(APIView):
 
         mixin = KpiMixin()
 
-        # DCRating and StorageCapacity
+        # dcrating and StorageCapacity
         plants = Plant.objects.all()
 
         dcList = list()
         storCapList = list()
         storSOHList = list()
         for plant in plants:
-            if plant.DCRating is not None:
-                dcList.append( KpiTimeseriesElement(plant.id,plant.activationDate,plant.DCRating,1) )
-            if plant.storageOriginalCapacity is not None:
-                storCapList.append( KpiTimeseriesElement(plant.id,plant.activationDate,plant.storageOriginalCapacity,1) )
-                if plant.storageCurrentCapacity is not None:
-                    storSOHList.append( KpiTimeseriesElement(plant.id,plant.activationDate,plant.storageCurrentCapacity,plant.storageOriginalCapacity) )
+            if plant.dcrating is not None:
+                dcList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.dcrating,1) )
+            if plant.storageoriginalcapacity is not None:
+                storCapList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storageoriginalcapacity,1) )
+                if plant.storagecurrentcapacity is not None:
+                    storSOHList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storagecurrentcapacity,plant.storageoriginalcapacity) )
                 else:
-                    storCapList.append( KpiTimeseriesElement(plant.id,plant.activationDate,plant.storageOriginalCapacity,1) )
+                    storCapList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storageoriginalcapacity,1) )
 
         # Fill in the plant-related KPIs
         result = collections.defaultdict(dict)
@@ -236,12 +237,12 @@ class KPIsView(APIView):
         yrList = list()
         for entry in timeseries:
             if entry.GHI_DIFF is not None:
-                ghiList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp.date(),entry.GHI_DIFF,1) )
+                ghiList.append( KpiTimeseriesElement(entry.plant.id,entry.timestamp.date(),entry.GHI_DIFF,1) )
             if entry.WH_DIFF is not None:
-                whList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp.date(),entry.WH_DIFF,1) )
-                yfList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp.date(),entry.WH_DIFF,entry.plant.DCRating) )
+                whList.append( KpiTimeseriesElement(entry.plant.id,entry.timestamp.date(),entry.WH_DIFF,1) )
+                yfList.append( KpiTimeseriesElement(entry.plant.id,entry.timestamp.date(),entry.WH_DIFF,entry.plant.dcrating) )
             if entry.HPOA_DIFF is not None:
-                yrList.append( KpiTimeseriesElement(entry.plant.id,entry.timeStamp.date(),entry.HPOA_DIFF,1000) )
+                yrList.append( KpiTimeseriesElement(entry.plant.id,entry.timestamp.date(),entry.HPOA_DIFF,1000) )
 
         # Now calculate the KPIs
 

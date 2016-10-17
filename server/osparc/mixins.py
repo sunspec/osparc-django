@@ -32,10 +32,10 @@ class KpiMixin(object):
                     currentPlant = entry.plantId
                     numberOfPlants = numberOfPlants+1 # there are multiple entries from the same plant
                 # print( "currentPlant=%d, entry.plantId=%d, numberOfPlants=%d" % (currentPlant,entry.plantId,numberOfPlants))
-                if entry.timeStamp < firstEntry:
-                    firstEntry = entry.timeStamp
-                if entry.timeStamp > lastEntry:
-                    lastEntry = entry.timeStamp
+                if entry.timestamp < firstEntry:
+                    firstEntry = entry.timestamp
+                if entry.timestamp > lastEntry:
+                    lastEntry = entry.timestamp
                 total += entry.value
                 if entry.value < minValue:
                     minValue = entry.value
