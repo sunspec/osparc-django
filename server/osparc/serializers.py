@@ -17,16 +17,16 @@ class PlantTypeSerializer(serializers.ModelSerializer):
         model = PlantType
         fields = ("name", "description")
 
-class PlantSerializer(serializers.ModelSerializer):
+class PlantSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Plant
-        fields = ("plantUUID","name","description","activationDate","postalCode","state","county","city",
-            "latitude","longitude","timeZone","weatherSource","DCRating","derate","trackerType","tilt","azimuth",
-            "storageOriginalCapacity","storageCurrentCapacity","storageStateOfCharge","accountID",
-            "versionCreationTime","versionID","solarAnywhereSite")
+        fields = ("plantuuid","name","description","activationdate","postalcode","state","county","city",
+            "latitude","longitude","timezone","weathersource","dcrating","derate","trackertype","tilt","azimuth",
+            "storageoriginalcapacity","storagecurrentcapacity","storagestateofcharge","accountid",
+            "versioncreationtime","versionid","solaranywheresite")
 
 class PlantTimeSeriesSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlantTimeSeries
-        fields = ("timeStamp","sampleInterval","WH_DIFF","GHI_DIFF","TMPAMB_AVG","HPOA_DIFF","plant","recordStatus")
+        fields = ("timestamp","sampleinterval","WH_DIFF","GHI_DIFF","TMPAMB_AVG","HPOA_DIFF","plant","recordstatus")
 

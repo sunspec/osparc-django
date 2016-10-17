@@ -29,34 +29,34 @@ class PlantType(models.Model):
         return self.name
 
 class Plant(models.Model):
-    plantUUID = models.CharField(max_length=254,blank=True,null=True)
+    plantuuid = models.CharField(max_length=254,blank=True,null=True)
     name = models.CharField(max_length=250, blank=True, null=True)
     description = models.CharField(max_length=254, blank=True, null=True)
-    activationDate = models.DateField()
-    postalCode = models.CharField(max_length=6,default='')
+    activationdate = models.DateField()
+    postalcode = models.CharField(max_length=6,default='')
     state = models.CharField(max_length=2,default='')
     county = models.CharField(max_length=32,default='')
     city = models.CharField(max_length=32,default='')
     latitude = models.CharField(max_length=16,default='none')
     longitude = models.CharField(max_length=16,default='none')
-    timeZone = models.CharField(max_length=64,default='none')
-    weatherSource = models.CharField(max_length=32, blank=True, null=True) # CPR or local
-    DCRating = models.FloatField(blank=True, null=True)     # watts (NOT kilo-watts)
+    timezone = models.CharField(max_length=64,default='none')
+    weathersource = models.CharField(max_length=32, blank=True, null=True) # CPR or local
+    dcrating = models.FloatField(blank=True, null=True)     # watts (NOT kilo-watts)
     derate = models.FloatField(blank=True, null=True)
     # from PVArray
-    trackerType = models.CharField(max_length=32)
+    trackertype = models.CharField(max_length=32)
     tilt = models.IntegerField()
     azimuth = models.IntegerField()
     # from StorageSystem
-    storageOriginalCapacity = models.FloatField(blank=True,null=True)
-    storageCurrentCapacity  = models.FloatField(blank=True,null=True)
-    storageStateOfCharge = models.FloatField(blank=True,null=True)
+    storageoriginalcapacity = models.FloatField(blank=True,null=True)
+    storagecurrentcapacity  = models.FloatField(blank=True,null=True)
+    storagestateofcharge = models.FloatField(blank=True,null=True)
     # plant-meta-meta data
-    accountID = models.CharField(max_length=250)
-    recordStatus = models.IntegerField(default=1)
-    versionCreationTime = models.DateTimeField(auto_now_add=True)
-    versionID = models.IntegerField(default=1)
-    solarAnywhereSite = models.CharField(max_length=64,blank=True,null=True)
+    accountid = models.CharField(max_length=250)
+    recordstatus = models.IntegerField(default=1)
+    versioncreationtime = models.DateTimeField(auto_now_add=True)
+    versionid = models.IntegerField(default=1)
+    solaranywheresite = models.CharField(max_length=64,blank=True,null=True)
     def __str__(self):
         return self.name
 
@@ -103,8 +103,8 @@ class UploadActivity(models.Model):
 #         return self.name
 
 class PlantTimeSeries(models.Model):
-    timeStamp = models.DateTimeField()
-    sampleInterval = models.IntegerField()
+    timestamp = models.DateTimeField()
+    sampleinterval = models.IntegerField()
     WH_DIFF = models.FloatField()           # kWh since last entry
     GHI_DIFF = models.FloatField()
     TMPAMB_AVG = models.FloatField(blank=True,null=True)
@@ -112,7 +112,7 @@ class PlantTimeSeries(models.Model):
     HPOA_DIFF = models.FloatField(blank=True,null=True)
     # plantTimeSeries-meta-meta data
     plant = models.ForeignKey(Plant)
-    recordStatus = models.IntegerField(default=1) # RECORD_STATUS_ACTIVE
+    recordstatus = models.IntegerField(default=1) # RECORD_STATUS_ACTIVE
     def __str__(self):
         return self.name
 
