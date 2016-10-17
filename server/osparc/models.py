@@ -117,7 +117,6 @@ class PlantTimeSeries(models.Model):
         return self.name
 
 class Total(models.Model):
-    id = models.IntegerField(primary_key=True)
     totaldcrating = models.FloatField(blank=True, null=True)
     totalstoragecapacity = models.FloatField(blank=True, null=True)
 
