@@ -116,16 +116,74 @@ class PlantTimeSeries(models.Model):
     def __str__(self):
         return self.name
 
-# class Total(models.Model):
-#     totaldcrating = models.FloatField(blank=True, null=True)
-#     totalstoragecapacity = models.FloatField(blank=True, null=True)
-#     class Meta:
-#         managed = False
-#         db_table = 'osparc_total'
-
 class KPI(models.Model):
-    totaldcrating = models.FloatField(blank=True, null=True)
-    totalstoragecapacity = models.FloatField(blank=True, null=True)
+    name = models.CharField(max_length=254, blank=True, null=True)
+    plants = models.IntegerField(blank=True, null=True)
+    firstday = models.DateField(blank=True, null=True)
+    lastday = models.DateField(blank=True, null=True)
+    mean = models.FloatField(blank=True, null=True)
+    median = models.FloatField(blank=True, null=True)
+    minimum = models.FloatField(blank=True, null=True)
+    maximum = models.FloatField(blank=True, null=True)
+
+class Total(models.Model):
+    dcrating = models.FloatField(blank=True, null=True)
+    storageoriginalcapacity = models.FloatField(blank=True, null=True)
+    class Meta:
+        managed = False
+        db_table = 'osparc_total'
+
+# class KPI(models.Model):
+#     dcratingplants = models.IntegerField(blank=True, null=True)
+#     dcratingfirstday = models.DateField(blank=True, null=True)
+#     dcratinglastday = models.DateField(blank=True, null=True)
+#     dcratingmean = models.FloatField(blank=True, null=True)
+#     dcratingmed = models.FloatField(blank=True, null=True)
+#     dcratingmin = models.FloatField(blank=True, null=True)
+#     dcratingmax = models.FloatField(blank=True, null=True)
+#     insolplants = models.IntegerField(blank=True, null=True)
+#     insolfirstday = models.DateField(blank=True, null=True)
+#     insollastday = models.DateField(blank=True, null=True)
+#     insolmean = models.FloatField(blank=True, null=True)
+#     insolmed = models.FloatField(blank=True, null=True)
+#     insolmin = models.FloatField(blank=True, null=True)
+#     insolmax = models.FloatField(blank=True, null=True)
+#     generatedplants = models.IntegerField(blank=True, null=True)
+#     generatedfirstday = models.DateField(blank=True, null=True)
+#     generatedlastday = models.DateField(blank=True, null=True)
+#     generatedmean = models.FloatField(blank=True, null=True)
+#     generatedmed = models.FloatField(blank=True, null=True)
+#     generatedmin = models.FloatField(blank=True, null=True)
+#     generatedmax = models.FloatField(blank=True, null=True)
+#     yieldplants = models.IntegerField(blank=True, null=True)
+#     yieldfirstday = models.DateField(blank=True, null=True)
+#     yieldlastday = models.DateField(blank=True, null=True)
+#     yieldmean = models.FloatField(blank=True, null=True)
+#     yieldmed = models.FloatField(blank=True, null=True)
+#     yieldmin = models.FloatField(blank=True, null=True)
+#     yieldmax = models.FloatField(blank=True, null=True)
+#     prplants = models.IntegerField(blank=True, null=True)
+#     prfirstday = models.DateField(blank=True, null=True)
+#     prlastday = models.DateField(blank=True, null=True)
+#     prmean = models.FloatField(blank=True, null=True)
+#     prmed = models.FloatField(blank=True, null=True)
+#     prmin = models.FloatField(blank=True, null=True)
+#     prmax = models.FloatField(blank=True, null=True)
+#     storcapplants = models.IntegerField(blank=True, null=True)
+#     storcapfirstday = models.DateField(blank=True, null=True)
+#     storcaplastday = models.DateField(blank=True, null=True)
+#     storcapmean = models.FloatField(blank=True, null=True)
+#     storcapmed = models.FloatField(blank=True, null=True)
+#     storcapmin = models.FloatField(blank=True, null=True)
+#     storcapmax = models.FloatField(blank=True, null=True)
+#     storsohplants = models.IntegerField(blank=True, null=True)
+#     storsohfirstday = models.DateField(blank=True, null=True)
+#     storsohlastday = models.DateField(blank=True, null=True)
+#     storsohmean = models.FloatField(blank=True, null=True)
+#     storsohmed = models.FloatField(blank=True, null=True)
+#     storsohmin = models.FloatField(blank=True, null=True)
+#     storsohmax = models.FloatField(blank=True, null=True)
+
 
 
 # | WH_LAST           | float      | YES  |     | NULL    | all NULL

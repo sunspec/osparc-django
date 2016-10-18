@@ -17,9 +17,9 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from osparc.models import Account,UploadActivity,PlantType,Plant,PlantTimeSeries
-# from osparc.models import Total
+from osparc.models import KPI
 from osparc.serializers import AccountSerializer,UploadActivitySerializer,PlantTypeSerializer,PlantSerializer
-from osparc.serializers import PlantTimeSeriesSerializer
+from osparc.serializers import PlantTimeSeriesSerializer,KPISerializer
 from .mixins import KpiMixin
 
 
@@ -42,6 +42,10 @@ class PlantViewSet(viewsets.ModelViewSet):
 class PlantTimeSeriesViewSet(viewsets.ModelViewSet):
     queryset = PlantTimeSeries.objects.all()
     serializer_class = PlantTimeSeriesSerializer
+
+class KPIViewSet(viewsets.ModelViewSet):
+    queryset = KPI.objects.all()
+    serializer_class = KPISerializer
 
 # stats
 class StatsView(APIView):
@@ -200,7 +204,10 @@ class KpiTimeseriesElement:
 
 class KPIsView(APIView):
 
-    def totals(self):
+    def create(self, validated_data):
+        return KPI.objects.create(**validated_data)
+
+    def calculateKPIs(self):
 
         mixin = KpiMixin()
 
@@ -224,13 +231,13 @@ class KPIsView(APIView):
         result = collections.defaultdict(dict)
 
         # 1. DC Power Rating (rated DC power)
-        result['DCRating'] = KpiMixin.buildKpi(mixin,dcList)
+        result['DCRating'] = KpiMixin.buildAndSaveKpi(mixin,dcList,'DCRating')
 
         # 2. Storage Capacity
-        result['StorageCapacity'] = KpiMixin.buildKpi(mixin,storCapList)
+        result['StorageCapacity'] = KpiMixin.buildAndSaveKpi(mixin,storCapList,'StorageCapacity')
 
         # 3. Storage State of Health
-        result['StorageStateOfHealth'] = KpiMixin.buildKpi(mixin,storSOHList)
+        result['StorageStateOfHealth'] = KpiMixin.buildAndSaveKpi(mixin,storSOHList,'StorageStateOfHealth')
 
         #  Now the timeseries-related KPIs
         timeseries = PlantTimeSeries.objects.all()
@@ -253,26 +260,27 @@ class KPIsView(APIView):
         # Now calculate the KPIs
 
         # 1. GHI (daily insolation)
-        result['MonthlyInsolation'] = KpiMixin.buildKpi(mixin,ghiList)
+        result['MonthlyInsolation'] = KpiMixin.buildAndSaveKpi(mixin,ghiList,'MonthlyInsolation')
 
         # 2. WH (daily generated energy)
-        result['MonthlyGeneratedEnergy'] = KpiMixin.buildKpi(mixin,whList)
+        result['MonthlyGeneratedEnergy'] = KpiMixin.buildAndSaveKpi(mixin,whList,'MonthlyGeneratedEnergy')
 
         # 3. YF (generated yield kWh/kWp)
-        result['MonthlyYield'] = KpiMixin.buildKpi(mixin,yfList)
+        result['MonthlyYield'] = KpiMixin.buildAndSaveKpi(mixin,yfList,'MonthlyYield')
         
         # 4. YR (hpoa yield kWh/kWp)
         if len(yrList) > 0:
-            result['PerformanceRatio'] = KpiMixin.divide(mixin,result['MonthlyYield'],KpiMixin.buildKpi(mixin,yrList))
+            result['PerformanceRatio'] = KpiMixin.divide(mixin,result['MonthlyYield'],KpiMixin.buildKpi(mixin,yrList,''))
+            result['PerformanceRatio']['name'] = 'PerformanceRatio'
+            KpiMixin.saveKpi(mixin,result['PerformanceRatio'],'PerformanceRatio')
 
         return result
 
     def get(self, request, format=None):
 
-        if not dict(request.query_params.iterlists()):
-            return Response(KPIsView.totals(self))
+        kpis = KPIsView.calculateKPIs(self)
 
-        return Response({"I don't understand the query string": dict(request.query_params.iterlists()).keys()[0]})
+        return Response(kpis)
 
 
 # swagger

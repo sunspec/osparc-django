@@ -1,6 +1,8 @@
 import datetime
 import sys
 import collections
+from osparc.models import KPI
+from osparc.serializers import KPISerializer
 
 class KpiMixin(object):
 
@@ -13,7 +15,7 @@ class KpiMixin(object):
         else:
             return (sortedLst[index] + sortedLst[index + 1])/2.0
 
-    def buildKpi(self,entryList):
+    def buildKpi(self,entryList,name):
         firstEntry = datetime.date.today()
         lastEntry = datetime.datetime.strptime('01012001', '%d%m%Y').date()
         total = 0
@@ -44,11 +46,12 @@ class KpiMixin(object):
                 valueList.append(entry.value)
 
         kpi = collections.defaultdict(dict)
+        kpi['name'] = name
         kpi['plants'] = numberOfPlants
-        kpi['firstDay'] = firstEntry
-        kpi['lastDay'] = lastEntry
-        kpi['min'] = round( minValue,1 )
-        kpi['max'] = round( maxValue,1 )
+        kpi['firstday'] = firstEntry
+        kpi['lastday'] = lastEntry
+        kpi['minimum'] = round( minValue,1 )
+        kpi['maximum'] = round( maxValue,1 )
         if len(entryList) > 0:
             kpi['mean'] = round(total/len(entryList),1)
         else:
@@ -57,18 +60,34 @@ class KpiMixin(object):
             kpi['median'] = round( KpiMixin.median(self,valueList),1 )
         else:
             kpi['median'] = 0
+
         return kpi
 
     def divide( self, dict1, dict2 ):
         kpi = collections.defaultdict(dict)
         kpi['plants'] = min( dict1['plants'],dict2['plants'] )
-        kpi['firstDay'] = max( dict1['firstDay'],dict2['firstDay'] )
-        kpi['lastDay'] = min( dict1['lastDay'],dict2['lastDay'] )
-        kpi['min'] = round(dict1['min'] / dict2['min'],2)
-        kpi['max'] = round(dict1['max'] / dict2['max'],2)
+        kpi['firstday'] = max( dict1['firstday'],dict2['firstday'] )
+        kpi['lastday'] = min( dict1['lastday'],dict2['lastday'] )
+        kpi['minimum'] = round(dict1['minimum'] / dict2['minimum'],2)
+        kpi['maximum'] = round(dict1['maximum'] / dict2['maximum'],2)
         kpi['mean'] = round(dict1['mean'] / dict2['mean'],2)
         kpi['median'] = round(dict1['median'] / dict2['median'],2)
         return kpi
 
+    def saveKpi( self,kpi,name ):
+        existing = KPI.objects.all()
+        try:
+            existingKpi = KPI.objects.get(name=name)
+            serializer = KPISerializer(existingKpi,data=kpi)
+            valid = serializer.is_valid()
+            serializer.save()
+            return serializer.validated_data
+        except:
+            serializer = KPISerializer(data=kpi)
+            valid = serializer.is_valid()
+            serializer.save()
+            return serializer.validated_data
+        return
 
- 
+    def buildAndSaveKpi(self,entryList,name):
+        return KpiMixin.saveKpi( self,KpiMixin.buildKpi(self,entryList,name),name )
