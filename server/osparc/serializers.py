@@ -11,7 +11,7 @@ class UploadActivitySerializer(serializers.ModelSerializer):
         model = models.UploadActivity
         fields = ("account","requestTime","responseTime","plantUUID","status","errorDetail","s3Key")
 
-class PlantTypeSerializer(serializers.ModelSerializer):
+class PlantTypeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.PlantType
         fields = ("name", "description")
@@ -29,7 +29,7 @@ class PlantTimeSeriesSerializer(serializers.ModelSerializer):
         model = models.PlantTimeSeries
         fields = ("timestamp","sampleinterval","WH_DIFF","GHI_DIFF","TMPAMB_AVG","HPOA_DIFF","plant","recordstatus")
 
-class KPISerializer(serializers.ModelSerializer):
+class KPISerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.KPI
         fields = ("name","plants","firstday","lastday","mean","median","minimum","maximum")
