@@ -165,6 +165,7 @@ class StatsView(APIView):
 
     def get(self, request, format=None):
 
+        # note: this is executed for both plants/count and plants/capacity. Both return both...
         if not dict(request.query_params.iterlists()):
             return Response(StatsView.totals(self))
 
