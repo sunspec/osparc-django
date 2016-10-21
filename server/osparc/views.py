@@ -26,7 +26,6 @@ from osparc.serializers import AccountSerializer,UploadActivitySerializer,PlantT
 from osparc.serializers import PlantTimeSeriesSerializer,KPISerializer
 from .mixins import KpiMixin
 
-
 class AccountViewSet(viewsets.ModelViewSet):
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
@@ -47,58 +46,63 @@ class PlantTimeSeriesViewSet(viewsets.ModelViewSet):
     queryset = PlantTimeSeries.objects.all()
     serializer_class = PlantTimeSeriesSerializer
 
-class KPIViewSet(viewsets.ModelViewSet):
+class KPIViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = KPI.objects.all()
     serializer_class = KPISerializer
 
+class KPIView(generics.ListAPIView):
+    def list(self, request):
+        queryset = KPI.objects.all()
+        serializer = KPISerializer(queryset, many=True)
+        return Response(serializer.data)
 
 # plants
-class PlantSummary:
-    def __init__(self,id,name,uuid,state,postalcode,activationdate,dcrating,link):
-        self.id = id
-        self.name = name
-        self.uuid = uuid
-        self.state = state
-        self.postalcode = postalcode
-        self.activationdate = activationdate
-        self.dcrating = dcrating
-        self.link = link
+# class PlantSummary:
+#     def __init__(self,id,name,uuid,state,postalcode,activationdate,dcrating,link):
+#         self.id = id
+#         self.name = name
+#         self.uuid = uuid
+#         self.state = state
+#         self.postalcode = postalcode
+#         self.activationdate = activationdate
+#         self.dcrating = dcrating
+#         self.link = link
 
-    def serialize(obj):
-        return {
-            "id": obj.id,
-            "name":   obj.name,
-            "uuid": obj.uuid,
-            "state": obj.state,
-            "postalcode": obj.postalcode,
-            "activationdate": obj.activationdate,
-            "dcrating": obj.dcrating,
-            "link": obj.link
-        }
+#     def serialize(obj):
+#         return {
+#             "id": obj.id,
+#             "name":   obj.name,
+#             "uuid": obj.uuid,
+#             "state": obj.state,
+#             "postalcode": obj.postalcode,
+#             "activationdate": obj.activationdate,
+#             "dcrating": obj.dcrating,
+#             "link": obj.link
+#         }
 
-class PlantView(APIView):
+# class PlantView(APIView):
 
-    def summary(self, queryset, request, format=None):
-        result = collections.defaultdict(int)
-        result['count'] = '/api/plants/count'
-        result['kpi'] = '/api/plants/kpi'
-        result['capacity'] = '/api/plants/capacity'
-        result['plants'] = list()
+#     def summary(self, queryset, request, format=None):
+#         result = collections.defaultdict(int)
+#         result['count'] = '/api/plants/count'
+#         result['kpi'] = '/api/plants/kpi'
+#         result['capacity'] = '/api/plants/capacity'
+#         result['plants'] = list()
 
-        for plant in queryset:
-            ps = PlantSummary(plant.id,plant.name,plant.plantuuid,plant.state,plant.postalcode,plant.activationdate,plant.dcrating,("/api/plants/%s" % (plant.id)))
-            result['plants'].append( ps.serialize() )
+#         for plant in queryset:
+#             ps = PlantSummary(plant.id,plant.name,plant.plantuuid,plant.state,plant.postalcode,plant.activationdate,plant.dcrating,("/api/plants/%s" % (plant.id)))
+#             result['plants'].append( ps.serialize() )
 
-        return result
+#         return result
 
-    def get(self, request, format=None):
-        if 'id' in request.query_params:
-            plantId = int(request.query_params['id'][0])
-            plant = Plant.objects.get(id=plantId)
-            return Response(model_to_dict(plant))
-        queryset = Plant.objects.all()
-        res = PlantView.summary(self,queryset,request,format)
-        return Response(PlantView.summary(self,queryset,request,format))
+#     def get(self, request, format=None):
+#         if 'id' in request.query_params:
+#             plantId = int(request.query_params['id'][0])
+#             plant = Plant.objects.get(id=plantId)
+#             return Response(model_to_dict(plant))
+#         queryset = Plant.objects.all()
+#         res = PlantView.summary(self,queryset,request,format)
+#         return Response(PlantView.summary(self,queryset,request,format))
 
 # stats
 class StatsView(APIView):
@@ -218,9 +222,13 @@ class StatsView(APIView):
 
     def get(self, request, format=None):
 
-        # note: this is executed for both plants/count and plants/capacity. Both return both...
-        if not dict(request.query_params.iterlists()):
-            return Response(StatsView.totals(self))
+        #  count, dcrating
+        result = dict(StatsView.totals(self))
+
+        #  kpis
+        result['kpis'] = KPISerializer(KPI.objects.all(), many=True).data
+
+        # wacky groupings if needed
 
         queries = dict(request.query_params.iterlists())
 
@@ -231,23 +239,29 @@ class StatsView(APIView):
             by = queries['by']
             if 'year' in by:
                 year = True
-            if 'DCRating' in by:
+            if 'dcrating' in by:
                 dc = True
             if 'state' in by:
                 state = True
 
+            print("year=%s,dc=%s,state=%s" %(year,dc,state))
+
+            if year == False and dc == False and state == False:
+                return Response({"I don't understand the query string": dict(request.query_params.iterlists()).keys()[0]})
+
             plants = Plant.objects.all()
 
             if state == True:
-                return Response(StatsView.plantsByState(self,plants))
+                result['bystate'] = StatsView.plantsByState(self,plants)
 
             if year == True and dc == False:
-                return Response(StatsView.plantsByYear(self,plants))
+                result['byyear'] = StatsView.plantsByYear(self,plants)
 
             if year == True and dc == True:
-                return Response(StatsView.plantsByYearAnddcrating(self,plants))
+                result['byyearanddcrating'] = StatsView.plantsByYearAnddcrating(self,plants)
 
-        return Response({"I don't understand the query string": dict(request.query_params.iterlists()).keys()[0]})
+        return Response(result)
+
 
 # KPIs
 class KpiTimeseriesElement:

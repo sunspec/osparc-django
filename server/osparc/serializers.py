@@ -34,11 +34,16 @@ class PlantTypeSerializer(serializers.HyperlinkedModelSerializer):
 #             self.fields = detail_fields
 #         return fields
 
-class PlantSerializer(serializers.ModelSerializer):
+class PlantSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.Plant
-        fields = ("plantuuid","name","description","activationdate","postalcode","state","county","city",
-            "latitude","longitude","timezone","weathersource","dcrating","derate","trackertype","tilt","azimuth",
+        fields = ("uuid","name","activationdate","dcrating","postalcode","state")
+
+class PlantDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Plant
+        fields = ("description","county","city",
+            "latitude","longitude","timezone","weathersource","derate","trackertype","tilt","azimuth",
             "storageoriginalcapacity","storagecurrentcapacity","storagestateofcharge","accountid",
             "versioncreationtime","versionid","solaranywheresite")
 

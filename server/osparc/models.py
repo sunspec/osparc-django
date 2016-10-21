@@ -29,26 +29,32 @@ class PlantType(models.Model):
         return self.name
 
 class Plant(models.Model):
-    plantuuid = models.CharField(max_length=254,blank=True,null=True)
+    uuid = models.CharField(max_length=254,blank=True,null=True)
     name = models.CharField(max_length=250, blank=True, null=True)
-    description = models.CharField(max_length=254, blank=True, null=True)
     activationdate = models.DateField()
-    postalcode = models.CharField(max_length=6,default='')
     state = models.CharField(max_length=2,default='')
+    postalcode = models.CharField(max_length=6,default='')
+    dcrating = models.FloatField(blank=True, null=True)     # watts (NOT kilo-watts)
+    storageoriginalcapacity = models.FloatField(blank=True,null=True)
+    link = models.CharField(max_length=254,blank=True,null=True)
+    def __str__(self):
+        return self.name
+
+class PlantDetails(models.Model):
+    plant = models.ForeignKey(Plant)
+    description = models.CharField(max_length=254, blank=True, null=True)
     county = models.CharField(max_length=32,default='')
     city = models.CharField(max_length=32,default='')
     latitude = models.CharField(max_length=16,default='none')
     longitude = models.CharField(max_length=16,default='none')
     timezone = models.CharField(max_length=64,default='none')
     weathersource = models.CharField(max_length=32, blank=True, null=True) # CPR or local
-    dcrating = models.FloatField(blank=True, null=True)     # watts (NOT kilo-watts)
     derate = models.FloatField(blank=True, null=True)
     # from PVArray
     trackertype = models.CharField(max_length=32)
     tilt = models.IntegerField()
     azimuth = models.IntegerField()
     # from StorageSystem
-    storageoriginalcapacity = models.FloatField(blank=True,null=True)
     storagecurrentcapacity  = models.FloatField(blank=True,null=True)
     storagestateofcharge = models.FloatField(blank=True,null=True)
     # plant-meta-meta data
