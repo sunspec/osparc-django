@@ -88,9 +88,17 @@ class KPISerializer(serializers.HyperlinkedModelSerializer):
         fields = ("name","plants","firstday","lastday","mean","median","minimum","maximum")
 
 
+class ReportDefinitionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ReportDefinition
+        fields = ("reportname","observationstartdate","observationenddate","plantpostalcode",
+                "plantstate","plantminsize","plantmaxsize","plantlatestactivationdate")
 
-
-
+class ReportRunSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ReportRun
+        fields = ("definition","runsubmittime","runstarttime","runscompletetime","observationstarttime",
+                "observationendtime","numberofobservations","numberofplants","totaldccapacity","totalstoragecapacity")
 
 
 

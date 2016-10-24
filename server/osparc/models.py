@@ -76,18 +76,6 @@ current oSPARC - reason not carried forward shown in right column
     # degradationRate = models.FloatField(blank=True, null=True) all NULL
 """
 
-class UploadActivity(models.Model):
-    requestTime = models.DateTimeField(auto_now_add=True)
-    responseTime = models.DateTimeField(blank=True,null=True)
-    plantUUID = models.CharField(max_length=254,blank=True,null=True)
-    status = models.CharField(max_length=16)
-    errorDetail = models.CharField(max_length=1024,blank=True,null=True)
-    s3Key = models.CharField(max_length=254)
-    account = models.ForeignKey(Account)
-    plant = models.ForeignKey(Plant)
-    def __str__(self):
-        return self.name
-
 # class PVArray(models.Model):  INCORPORATED IN PLANT
 #     name = models.CharField(max_length=250, blank=True, null=True)
 #     description = models.CharField(max_length=254, blank=True, null=True)
@@ -122,6 +110,18 @@ class PlantTimeSeries(models.Model):
     def __str__(self):
         return self.name
 
+class UploadActivity(models.Model):
+    requestTime = models.DateTimeField(auto_now_add=True)
+    responseTime = models.DateTimeField(blank=True,null=True)
+    plantUUID = models.CharField(max_length=254,blank=True,null=True)
+    status = models.CharField(max_length=16)
+    errorDetail = models.CharField(max_length=1024,blank=True,null=True)
+    s3Key = models.CharField(max_length=254)
+    account = models.ForeignKey(Account)
+    plant = models.ForeignKey(Plant)
+    def __str__(self):
+        return self.name
+
 class KPI(models.Model):
     name = models.CharField(max_length=254, blank=True, null=True)
     plants = models.IntegerField(blank=True, null=True)
@@ -138,6 +138,60 @@ class Total(models.Model):
     class Meta:
         managed = False
         db_table = 'osparc_total'
+
+
+#  =========   REPORTS   ===========
+
+# Custom Query Report definition
+class ReportDefinition(models.Model):
+    reportname = models.CharField(max_length=254, blank=True, null=True)
+    observationstartdate = models.DateField(blank=True,null=True)  # time plant observation started
+    observationenddate = models.DateField(blank=True,null=True)  # time plant observation ended
+    plantpostalcode = models.CharField(max_length=6, blank=True, null=True)
+    plantstate = models.CharField(max_length=2, blank=True, null=True)
+    plantminsize = models.IntegerField(blank=True,null=True)
+    plantmaxsize = models.IntegerField(blank=True,null=True)
+    plantlatestactivationdate = models.DateField(blank=True,null=True) # youngest plant in query
+
+# Production Statistics pertaining to a single plant over a specific period (often its lifetime)
+# Used in the construction of instances of ReportRuns
+class PlantReport(models.Model):
+    plant = models.ForeignKey(Plant)
+    recordstatus = models.IntegerField(default=1) # RECORD_STATUS_ACTIVE
+    timestamp = models.DateTimeField()
+    sampleinterval = models.IntegerField(blank=True,null=True)
+    firstinterval = models.DateTimeField()
+    lastinterval = models.DateTimeField()
+    yfavg = models.FloatField(blank=True,null=True) # production yield kWh/kWdc
+    yravg = models.FloatField(blank=True,null=True) # insolation yield kWh/m2/1000
+    pravg = models.FloatField(blank=True,null=True) # performance ratio yf/yr
+
+class ReportRun(models.Model):
+    definition = models.ForeignKey(ReportDefinition)
+    runsubmittime = models.DateTimeField(blank=True,null=True) # time user ordered the report
+    runstarttime = models.DateTimeField(blank=True,null=True)  # time report preparation actually began
+    runscompletetime = models.DateTimeField(blank=True,null=True)  # time report preparation actually completed
+    observationstarttime = models.DateTimeField(blank=True,null=True)  # time plant observation started
+    observationendtime = models.DateTimeField(blank=True,null=True)  # time plant observation ended
+    numberofobservations = models.IntegerField(blank=True,null=True)
+    numberofplants = models.IntegerField(blank=True,null=True)
+    totaldccapacity = models.FloatField(blank=True,null=True)
+    totalstoragecapacity = models.FloatField(blank=True,null=True)
+
+
+
+
+
+
+class ReportKPI(models.Model):
+    name = models.CharField(max_length=254, blank=True, null=True)
+    plants = models.IntegerField(blank=True, null=True)
+    firstday = models.DateField(blank=True, null=True)
+    lastday = models.DateField(blank=True, null=True)
+    mean = models.FloatField(blank=True, null=True)
+    median = models.FloatField(blank=True, null=True)
+    minimum = models.FloatField(blank=True, null=True)
+    maximum = models.FloatField(blank=True, null=True)
 
 # class KPI(models.Model):
 #     dcratingplants = models.IntegerField(blank=True, null=True)

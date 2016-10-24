@@ -21,9 +21,11 @@ from rest_framework.mixins import ListModelMixin
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 
 from osparc.models import Account,UploadActivity,PlantType,Plant,PlantTimeSeries
+from osparc.models import ReportDefinition,ReportRun
 from osparc.models import KPI
 from osparc.serializers import AccountSerializer,UploadActivitySerializer,PlantTypeSerializer,PlantSerializer
 from osparc.serializers import PlantTimeSeriesSerializer,KPISerializer
+from osparc.serializers import ReportDefinitionSerializer,ReportRunSerializer
 from .mixins import KpiMixin
 
 
@@ -69,6 +71,35 @@ class PlantList(generics.ListCreateAPIView):
 class PlantDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Plant.objects.all()
     serializer_class = PlantSerializer
+
+# queries & reports
+class ReportDefinitionList(generics.ListCreateAPIView):
+    serializer_class = ReportDefinitionSerializer
+
+    def get_queryset(self):
+        queryset = ReportDefinition.objects.all()
+        uuid = self.request.query_params.get('uuid', None)
+        if uuid is not None:
+            queryset = queryset.filter(uuid=uuid)
+        return queryset
+
+class ReportDefinitionDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ReportDefinition.objects.all()
+    serializer_class = ReportDefinitionSerializer
+
+class ReportRunList(generics.ListCreateAPIView):
+    serializer_class = ReportRunSerializer
+
+    def get_queryset(self):
+        queryset = ReportRun.objects.all()
+        uuid = self.request.query_params.get('uuid', None)
+        if uuid is not None:
+            queryset = queryset.filter(uuid=uuid)
+        return queryset
+
+class ReportRunDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ReportRun.objects.all()
+    serializer_class = ReportRunSerializer
 
 
 

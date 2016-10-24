@@ -14,6 +14,10 @@ urlpatterns = [
 	url('^api/',include(router.urls)),
     url('^api/plants$', views.PlantList.as_view()),
     url('^api/plants/(?P<pk>[0-9]+)$', views.PlantDetail.as_view()),
+    url('^api/queries$', views.ReportDefinitionList.as_view()),
+    url('^api/queries/(?P<pk>[0-9]+)$', views.ReportDefinitionDetail.as_view()),
+    url('^api/reports$', views.ReportRunList.as_view()),
+    url('^api/reports/(?P<pk>[0-9]+)$', views.ReportRunDetail.as_view()),
 	url('^api/aggregates',views.AggregatesView.as_view()),
 	url('^api/kpis/calc',views.KPIsView.as_view()),
 	url('^docs/',views.schema_view)
