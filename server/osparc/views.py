@@ -26,6 +26,7 @@ from osparc.serializers import AccountSerializer,UploadActivitySerializer,PlantT
 from osparc.serializers import PlantTimeSeriesSerializer,KPISerializer
 from .mixins import KpiMixin
 
+
 class AccountViewSet(viewsets.ModelViewSet):
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
@@ -37,10 +38,6 @@ class UploadActivityViewSet(viewsets.ModelViewSet):
 class PlantTypeViewSet(viewsets.ModelViewSet):
     queryset = PlantType.objects.all()
     serializer_class = PlantTypeSerializer
-
-class PlantViewSet(viewsets.ModelViewSet):
-    queryset = Plant.objects.all()
-    serializer_class = PlantSerializer
 
 class PlantTimeSeriesViewSet(viewsets.ModelViewSet):
     queryset = PlantTimeSeries.objects.all()
@@ -56,8 +53,66 @@ class KPIView(generics.ListAPIView):
         serializer = KPISerializer(queryset, many=True)
         return Response(serializer.data)
 
+
+
 # plants
-# class PlantSummary:
+class PlantList(generics.ListCreateAPIView):
+    serializer_class = PlantSerializer
+
+    def get_queryset(self):
+        queryset = Plant.objects.all()
+        uuid = self.request.query_params.get('uuid', None)
+        if uuid is not None:
+            queryset = queryset.filter(uuid=uuid)
+        return queryset
+
+class PlantDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Plant.objects.all()
+    serializer_class = PlantSerializer
+
+
+
+# class PlantList(APIView):
+#     def get(self, request, format=None):
+#         plants = Plant.objects.all()
+#         serializer = PlantSerializer(plants, many=True)
+#         return Response(serializer.data)
+
+#     def post(self, request, format=None):
+#         serializer = PlantSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# class PlantDetail(APIView):
+#     def get_object(self, pk):
+#         try:
+#             return Plant.objects.get(pk=pk)
+#         except Plant.DoesNotExist:
+#             raise Http404
+
+#     def get(self, request, pk, format=None):
+#         plant = self.get_object(pk)
+#         serializer = PlantSerializer(plant)
+#         return Response(serializer.data)
+
+#     def put(self, request, pk, format=None):
+#         plant = self.get_object(pk)
+#         serializer = PlantSerializer(plant, data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+#     def delete(self, request, pk, format=None):
+#         plant = self.get_object(pk)
+#         plant.delete()
+#         return Response(status=status.HTTP_204_NO_CONTENT)# class PlantSummary:
+
+
+
+
 #     def __init__(self,id,name,uuid,state,postalcode,activationdate,dcrating,link):
 #         self.id = id
 #         self.name = name
@@ -105,7 +160,7 @@ class KPIView(generics.ListAPIView):
 #         return Response(PlantView.summary(self,queryset,request,format))
 
 # stats
-class StatsView(APIView):
+class AggregatesView(APIView):
 
     def plantsByState(self,plants):
         result = collections.defaultdict(int)
