@@ -175,7 +175,7 @@ class AggregatesView(APIView):
             result[adate.year] += 1
         return result
 
-    def plantsByYearAnddcrating(self,plants):
+    def plantsByYearAndDcrating(self,plants):
             # there are 12 years and 5 dcrating buckets
             result = collections.defaultdict(dict)
             result['2007']['<10kW'] = 0
@@ -278,7 +278,7 @@ class AggregatesView(APIView):
     def get(self, request, format=None):
 
         #  count, dcrating
-        result = dict(StatsView.totals(self))
+        result = dict(AggregatesView.totals(self))
 
         #  kpis
         result['kpis'] = KPISerializer(KPI.objects.all(), many=True).data
@@ -307,13 +307,13 @@ class AggregatesView(APIView):
             plants = Plant.objects.all()
 
             if state == True:
-                result['bystate'] = StatsView.plantsByState(self,plants)
+                result['bystate'] = AggregatesView.plantsByState(self,plants)
 
             if year == True and dc == False:
                 result['byyear'] = StatsView.plantsByYear(self,plants)
 
             if year == True and dc == True:
-                result['byyearanddcrating'] = StatsView.plantsByYearAnddcrating(self,plants)
+                result['byyearanddcrating'] = AggregatesView.plantsByYearAndDcrating(self,plants)
 
         return Response(result)
 
