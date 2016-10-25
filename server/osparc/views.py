@@ -270,20 +270,21 @@ class AggregatesView(APIView):
             result['2018']['1-10MW'] = 0
             result['2018']['>10MW'] = 0
             for plant in plants:
-                adate = plant.activationdate
-                for yearBucket in [2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018]:
-                    if adate.year == yearBucket:
-                        # for rangeBucket in [[0,10],[10,100],[100,1000],[1000,10000],[10000,sys.maxint]:
-                        if plant.dcrating/1000 < 10:
-                            result[str(yearBucket)]['<10kW'] += 1
-                        elif plant.dcrating/1000 < 100:
-                            result[str(yearBucket)]['10-100kW'] += 1
-                        elif plant.dcrating/1000 < 1000:
-                            result[str(yearBucket)]['100kW-1MW'] += 1
-                        elif plant.dcrating/1000 < 10000:
-                            result[str(yearBucket)]['1-10MW'] += 1
-                        else:
-                            result[str(yearBucket)]['>10MW'] += 1
+                if plant.dcrating is not None:
+                    adate = plant.activationdate
+                    for yearBucket in [2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018]:
+                        if adate.year == yearBucket:
+                            # for rangeBucket in [[0,10],[10,100],[100,1000],[1000,10000],[10000,sys.maxint]:
+                            if plant.dcrating/1000 < 10:
+                                result[str(yearBucket)]['<10kW'] += 1
+                            elif plant.dcrating/1000 < 100:
+                                result[str(yearBucket)]['10-100kW'] += 1
+                            elif plant.dcrating/1000 < 1000:
+                                result[str(yearBucket)]['100kW-1MW'] += 1
+                            elif plant.dcrating/1000 < 10000:
+                                result[str(yearBucket)]['1-10MW'] += 1
+                            else:
+                                result[str(yearBucket)]['>10MW'] += 1
             return result
 
     def totals(self):
