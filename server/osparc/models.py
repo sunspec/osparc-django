@@ -144,7 +144,7 @@ class Total(models.Model):
 
 # Custom Query Report definition
 class ReportDefinition(models.Model):
-    reportname = models.CharField(max_length=254, blank=True, null=True)
+    name = models.CharField(max_length=254, blank=True, null=True)
     observationstartdate = models.DateField(blank=True,null=True)  # time plant observation started
     observationenddate = models.DateField(blank=True,null=True)  # time plant observation ended
     plantpostalcode = models.CharField(max_length=6, blank=True, null=True)
@@ -152,6 +152,8 @@ class ReportDefinition(models.Model):
     plantminsize = models.IntegerField(blank=True,null=True)
     plantmaxsize = models.IntegerField(blank=True,null=True)
     plantlatestactivationdate = models.DateField(blank=True,null=True) # youngest plant in query
+    def __str__(self):
+        return self.name
 
 # Production Statistics pertaining to a single plant over a specific period (often its lifetime)
 # Used in the construction of instances of ReportRuns
@@ -168,7 +170,7 @@ class PlantReport(models.Model):
 
 class ReportRun(models.Model):
     definition = models.ForeignKey(ReportDefinition)
-    runsubmittime = models.DateTimeField(blank=True,null=True) # time user ordered the report
+    runsubmittime = models.DateTimeField(auto_now_add=True,blank=True,null=True) # time user ordered the report
     runstarttime = models.DateTimeField(blank=True,null=True)  # time report preparation actually began
     runscompletetime = models.DateTimeField(blank=True,null=True)  # time report preparation actually completed
     observationstarttime = models.DateTimeField(blank=True,null=True)  # time plant observation started

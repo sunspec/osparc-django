@@ -91,7 +91,7 @@ class KPISerializer(serializers.HyperlinkedModelSerializer):
 class ReportDefinitionSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ReportDefinition
-        fields = ("reportname","observationstartdate","observationenddate","plantpostalcode",
+        fields = ("name","observationstartdate","observationenddate","plantpostalcode",
                 "plantstate","plantminsize","plantmaxsize","plantlatestactivationdate")
 
 class ReportRunSerializer(serializers.ModelSerializer):
