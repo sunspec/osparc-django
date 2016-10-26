@@ -37,7 +37,7 @@ class PlantTypeSerializer(serializers.HyperlinkedModelSerializer):
 class PlantSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.Plant
-        fields = ("uuid","name","activationdate","dcrating","postalcode","state")
+        fields = ("id","uuid","name","activationdate","dcrating","postalcode","state")
 
 class PlantDetailsSerializer(serializers.ModelSerializer):
     class Meta:
