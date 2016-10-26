@@ -169,12 +169,12 @@ class PlantReport(models.Model):
     pravg = models.FloatField(blank=True,null=True) # performance ratio yf/yr
 
 class ReportRun(models.Model):
-    definition = models.ForeignKey(ReportDefinition)
-    runsubmittime = models.DateTimeField(auto_now_add=True,blank=True,null=True) # time user ordered the report
+    reportdefinition = models.ForeignKey(ReportDefinition)
+    runsubmittime = models.DateTimeField(auto_now_add=True) # time user ordered the report
     runstarttime = models.DateTimeField(blank=True,null=True)  # time report preparation actually began
-    runscompletetime = models.DateTimeField(blank=True,null=True)  # time report preparation actually completed
-    observationstarttime = models.DateTimeField(blank=True,null=True)  # time plant observation started
-    observationendtime = models.DateTimeField(blank=True,null=True)  # time plant observation ended
+    runscompletetime = models.DateField(blank=True,null=True)  # time report preparation actually completed
+    observationstartdate = models.DateTimeField(blank=True,null=True)  # time plant observation started
+    observationenddate = models.DateField(blank=True,null=True)  # time plant observation ended
     numberofobservations = models.IntegerField(blank=True,null=True)
     numberofplants = models.IntegerField(blank=True,null=True)
     totaldccapacity = models.FloatField(blank=True,null=True)
@@ -186,6 +186,7 @@ class ReportRun(models.Model):
 
 
 class ReportKPI(models.Model):
+    reportrun = models.ForeignKey(ReportRun)
     name = models.CharField(max_length=254, blank=True, null=True)
     plants = models.IntegerField(blank=True, null=True)
     firstday = models.DateField(blank=True, null=True)

@@ -83,6 +83,24 @@ class ReportDefinitionList(generics.ListCreateAPIView):
             queryset = queryset.filter(uuid=uuid)
         return queryset
 
+    def post(self, request, format=None):
+
+        # save the report definition
+        serializer = ReportDefinitionSerializer(data=request.data)
+        if serializer.is_valid():
+            defId = serializer.save()
+
+            # Create a reportRun; an async process will run it and create the results
+            rr = { "reportdefinition":defId.id }
+            rrser = ReportRunSerializer(data=rr)
+            if rrser.is_valid():
+                rrser.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+            return Response(rrser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class ReportDefinitionDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = ReportDefinition.objects.all()
     serializer_class = ReportDefinitionSerializer
