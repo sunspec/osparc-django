@@ -148,11 +148,14 @@ class ReportDefinition(models.Model):
     name = models.CharField(max_length=254, blank=True, null=True)
     observationstartdate = models.DateField(blank=True,null=True)  # time plant observation started
     observationenddate = models.DateField(blank=True,null=True)  # time plant observation ended
-    plantpostalcode = models.CharField(max_length=6, blank=True, null=True)
-    plantstate = models.CharField(max_length=2, blank=True, null=True)
-    plantminsize = models.IntegerField(blank=True,null=True)
-    plantmaxsize = models.IntegerField(blank=True,null=True)
-    plantlatestactivationdate = models.DateField(blank=True,null=True) # youngest plant in query
+    plantfilterattribute = models.CharField(max_length=254, blank=True, null=True)
+    plantfilteroperation = models.CharField(max_length=254, blank=True, null=True)
+    plantfiltervalue = models.CharField(max_length=254, blank=True, null=True)
+    # plantpostalcode = models.CharField(max_length=6, blank=True, null=True)
+    # plantstate = models.CharField(max_length=2, blank=True, null=True)
+    # plantminsize = models.IntegerField(blank=True,null=True)
+    # plantmaxsize = models.IntegerField(blank=True,null=True)
+    # plantlatestactivationdate = models.DateField(blank=True,null=True) # youngest plant in query
     def __str__(self):
         return self.name
 

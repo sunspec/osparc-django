@@ -92,8 +92,7 @@ class ReportDefinitionSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
     class Meta:
         model = models.ReportDefinition
-        fields = ("id","name","observationstartdate","observationenddate","plantpostalcode",
-                "plantstate","plantminsize","plantmaxsize","plantlatestactivationdate")
+        fields = ("id","name","observationstartdate","observationenddate","plantfilterattribute","plantfilteroperation","plantfiltervalue")
 
 class ReportRunSerializer(serializers.ModelSerializer):
     class Meta:
