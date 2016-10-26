@@ -143,6 +143,7 @@ class Total(models.Model):
 #  =========   REPORTS   ===========
 
 # Custom Query Report definition
+# The database query used to generate the result is built on the fly from this definition
 class ReportDefinition(models.Model):
     name = models.CharField(max_length=254, blank=True, null=True)
     observationstartdate = models.DateField(blank=True,null=True)  # time plant observation started
@@ -168,7 +169,9 @@ class PlantReport(models.Model):
     yravg = models.FloatField(blank=True,null=True) # insolation yield kWh/m2/1000
     pravg = models.FloatField(blank=True,null=True) # performance ratio yf/yr
 
+# The results of a run of a query
 class ReportRun(models.Model):
+    status = models.IntegerField(default=2) # 1=ready, 2=pending, 5=processing, 6=failed, 9=empty
     reportdefinition = models.ForeignKey(ReportDefinition)
     runsubmittime = models.DateTimeField(auto_now_add=True) # time user ordered the report
     runstarttime = models.DateTimeField(blank=True,null=True)  # time report preparation actually began
