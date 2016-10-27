@@ -116,16 +116,6 @@ class UploadActivity(models.Model):
     def __str__(self):
         return self.name
 
-class KPI(models.Model):
-    name = models.CharField(max_length=254, blank=True, null=True)
-    plants = models.IntegerField(blank=True, null=True)
-    firstday = models.DateField(blank=True, null=True)
-    lastday = models.DateField(blank=True, null=True)
-    mean = models.FloatField(blank=True, null=True)
-    median = models.FloatField(blank=True, null=True)
-    minimum = models.FloatField(blank=True, null=True)
-    maximum = models.FloatField(blank=True, null=True)
-
 class Total(models.Model):
     dcrating = models.FloatField(blank=True, null=True)
     storageoriginalcapacity = models.FloatField(blank=True, null=True)
@@ -180,14 +170,9 @@ class ReportRun(models.Model):
     totaldccapacity = models.FloatField(blank=True,null=True)
     totalstoragecapacity = models.FloatField(blank=True,null=True)
 
-
-
-
-
-
-class ReportKPI(models.Model):
-    reportrun = models.ForeignKey(ReportRun)
+class KPI(models.Model):
     name = models.CharField(max_length=254, blank=True, null=True)
+    reportrun = models.ForeignKey(ReportRun,blank=True,null=True)
     plants = models.IntegerField(blank=True, null=True)
     firstday = models.DateField(blank=True, null=True)
     lastday = models.DateField(blank=True, null=True)

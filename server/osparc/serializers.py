@@ -89,7 +89,7 @@ class PlantTimeSeriesSerializer(serializers.ModelSerializer):
 class KPISerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.KPI
-        fields = ("name","plants","firstday","lastday","mean","median","minimum","maximum")
+        fields = ("name","reportrun","plants","firstday","lastday","mean","median","minimum","maximum")
 
 
 class ReportDefinitionSerializer(serializers.ModelSerializer):

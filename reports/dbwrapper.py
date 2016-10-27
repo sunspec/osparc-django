@@ -5,7 +5,6 @@
 import MySQLdb
 
 
-
 class DbWrapper(object):
 
 	readPlantreportSql = "select * from osparc_plantreport"
@@ -52,9 +51,9 @@ class DbWrapper(object):
 	def getPlants(self,attr,op,value):
 		try:
 			if attr != "":
-				query = "select id,dcrating,storageoriginalcapacity,storagecurrentcapacity from osparc_plant where %s %s %s" % (attr,op,value)
+				query = "select id,activationdate,dcrating,storageoriginalcapacity,storagecurrentcapacity from osparc_plant where %s %s %s" % (attr,op,value)
 			else:
-				query = "select id,dcrating,storageoriginalcapacity,storagecurrentcapacity from osparc_plant"
+				query = "select id,activationdate,dcrating,storageoriginalcapacity,storagecurrentcapacity from osparc_plant"
 			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
 			cursor = db.cursor()
 			cursor.execute(query)
@@ -79,6 +78,23 @@ class DbWrapper(object):
 			return results
 		except:
 			print "ERROR getting timeseries"
+
+	# save a kpi set associated with a reportrun
+	def saveKpi(self,runId,kpi):
+		try:
+			# there must be only one (reportrun,kpi) tuple per reportrun and kpi
+			query1 = "delete from osparc_kpi where name='%s' and reportrun_id=%d" % (kpi["name"],runId)
+			query = "insert into osparc_kpi (name,plants,firstday,lastday,mean,median,minimum,maximum,reportrun_id) values \
+					('%s',%d,'%s','%s',%d,%d,%d,%d,%d)" % \
+					(kpi["name"],kpi["plants"],kpi["firstday"],kpi["lastday"],kpi["mean"],kpi["median"],kpi["minimum"],kpi["maximum"],runId)
+			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
+			cursor = db.cursor()
+			cursor.execute(query1)
+			cursor.execute(query)
+			db.commit()
+			db.close()
+		except:
+			print "ERROR saving kpis"
 
 
 

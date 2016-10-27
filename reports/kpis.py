@@ -2,8 +2,27 @@ import datetime
 import sys
 import collections
 
+class Plant:
+    def __init__(self,id,actdate,dcrating,storageoriginalcapacity,storagecurrentcapacity):
+        self.id = id
+        self.activationdate = actdate
+        self.dcrating = dcrating
+        self.storageoriginalcapacity = storageoriginalcapacity
+        self.storagecurrentcapacity = storagecurrentcapacity
+
+class PlantTimeSeries:
+    def __init__(self,id,timestamp,sampleinterval,WH_DIFF,GHI_DIFF,TMPAMB_AVG,HPOA_DIFF,plant):
+        self.timestamp = timestamp
+        self.sampleinterval = sampleinterval
+        self.WH_DIFF = WH_DIFF
+        self.GHI_DIFF = GHI_DIFF
+        self.TMPAMB_AVG = TMPAMB_AVG
+        self.HPOA_DIFF = HPOA_DIFF
+        self.plant = plant
+
 class KpiTimeseriesElement:
     def __init__(self,plantId,timestamp,numerator,denominator):
+        # print "KpiTimeseriesElement init: ",plantId,timestamp,numerator,denominator
         self.plantId = plantId
         self.timestamp = timestamp
         self.value = numerator/denominator
@@ -96,20 +115,28 @@ class KPIs(object):
     def buildAndSaveKpi(self,entryList,name):
         return KPIs.saveKpi( self,KPIs.buildKpi(self,entryList,name),name )
 
-    def calculateKPIs( self, plantWhere, timeWhere ):
-        print "in calculateKPIs"
-        print "plantWhere: %s" % (plantWhere)
-        print "timeWhere: %s" % (timeWhere)
+    def findPlantsDcrating(self,plants,id):
+        for plant in plants:
+            if plant[0] == id:
+                return plant[2]
+        return None
 
-        # dcrating and StorageCapacity
-        plants = Plant.objects.all()
+    def calculateKPIs( self, plants, timeseries ):
+        print "in calculateKPIs"
+        print "plants: %d" % len(plants)
+        print "timeseries: %d" % len(timeseries)
 
         dcList = list()
         storCapList = list()
         storSOHList = list()
-        for plant in plants:
+
+        for pArray in plants:
+            # look, daddy's own little ORM!
+            plant = Plant(pArray[0],pArray[1],pArray[2],pArray[3],pArray[4])
+
             if plant.dcrating is not None:
                 dcList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.dcrating,1) )
+                # dcratingArray[plant.id] = plant.dcrating
             if plant.storageoriginalcapacity is not None:
                 storCapList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storageoriginalcapacity,1) )
                 if plant.storagecurrentcapacity is not None:
@@ -121,16 +148,15 @@ class KPIs(object):
         result = collections.defaultdict(dict)
 
         # 1. DC Power Rating (rated DC power)
-        result['DCRating'] = KPIs.buildAndSaveKpi(self,dcList,'DCRating')
+        result['DCRating'] = KPIs.buildKpi(self,dcList,'DCRating')
 
         # 2. Storage Capacity
-        result['StorageCapacity'] = KPIs.buildAndSaveKpi(self,storCapList,'StorageCapacity')
+        result['StorageCapacity'] = KPIs.buildKpi(self,storCapList,'StorageCapacity')
 
         # 3. Storage State of Health
-        result['StorageStateOfHealth'] = KPIs.buildAndSaveKpi(self,storSOHList,'StorageStateOfHealth')
+        result['StorageStateOfHealth'] = KPIs.buildKpi(self,storSOHList,'StorageStateOfHealth')
 
         #  Now the timeseries-related KPIs
-        timeseries = PlantTimeSeries.objects.all()
 
         # First, get a list of each element that will contribute to each KPI
         # We get a separate list per KPI because not all time series elements contain all measurements
@@ -138,42 +164,34 @@ class KPIs(object):
         whList = list()
         yfList = list()
         yrList = list()
-        for entry in timeseries:
+        for eArray in timeseries:
+
+            entry = PlantTimeSeries(eArray[0],eArray[1],eArray[2],eArray[3],eArray[4],eArray[5],eArray[6],eArray[7])
+
             if entry.GHI_DIFF is not None:
-                ghiList.append( KpiTimeseriesElement(entry.plant.id,entry.timestamp.date(),entry.GHI_DIFF,1) )
+                ghiList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.GHI_DIFF,1) )
             if entry.WH_DIFF is not None:
-                whList.append( KpiTimeseriesElement(entry.plant.id,entry.timestamp.date(),entry.WH_DIFF,1) )
-                yfList.append( KpiTimeseriesElement(entry.plant.id,entry.timestamp.date(),entry.WH_DIFF,entry.plant.dcrating) )
+                whList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.WH_DIFF,1) )
+                dcrating = KPIs.findPlantsDcrating(self,plants,entry.plant)
+                yfList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.WH_DIFF,dcrating) )
             if entry.HPOA_DIFF is not None:
-                yrList.append( KpiTimeseriesElement(entry.plant.id,entry.timestamp.date(),entry.HPOA_DIFF,1000) )
+                yrList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.HPOA_DIFF,1000) )
 
         # Now calculate the KPIs
 
         # 1. GHI (daily insolation)
-        result['MonthlyInsolation'] = KPIs.buildAndSaveKpi(self,ghiList,'MonthlyInsolation')
+        result['MonthlyInsolation'] = KPIs.buildKpi(self,ghiList,'MonthlyInsolation')
 
         # 2. WH (daily generated energy)
-        result['MonthlyGeneratedEnergy'] = KPIs.buildAndSaveKpi(self,whList,'MonthlyGeneratedEnergy')
+        result['MonthlyGeneratedEnergy'] = KPIs.buildKpi(self,whList,'MonthlyGeneratedEnergy')
 
         # 3. YF (generated yield kWh/kWp)
-        result['MonthlyYield'] = KPIs.buildAndSaveKpi(self,yfList,'MonthlyYield')
+        result['MonthlyYield'] = KPIs.buildKpi(self,yfList,'MonthlyYield')
         
         # 4. YR (hpoa yield kWh/kWp)
         if len(yrList) > 0:
             result['PerformanceRatio'] = KPIs.divide(self,result['MonthlyYield'],KPIs.buildKpi(self,yrList,''))
             result['PerformanceRatio']['name'] = 'PerformanceRatio'
-            KPIs.saveKpi(self,result['PerformanceRatio'],'PerformanceRatio')
 
         return result
-
-    def get(self, request, format=None):
-
-        print("calculating kpis starting %s" % (datetime.datetime.now()))
-
-        kpis = KPIsView.calculateKPIs(self)
-
-        print("calculating kpis finished %s" % (datetime.datetime.now()))
-
-        return Response(kpis)
-
 

@@ -32,10 +32,8 @@ try:
 			now = datetime.datetime.now()
 			DbWrapper.updateRun(dbwrapper,id,now,5)
 
-			defId = run[11]
-			print "defId=%d" % (defId)
-
 			# get the definition, which contans the plant filters
+			defId = run[11]
 			defi = DbWrapper.readDef(dbwrapper,defId)
 
 			# use the plant filter from definition to get the set of plants
@@ -44,7 +42,6 @@ try:
 			op = defi[5]
 			value = defi[6]
 			plants = DbWrapper.getPlants(dbwrapper,attr,op,value)
-			print len(plants)," plants"
 
 			# use the time filter from the reportrun, and the set of plants 
 			# retrieved above, to get the set of timeseries elements to be used
@@ -52,13 +49,18 @@ try:
 			startTime = datetime.datetime.combine(defi[2],datetime.time.min)
 			endTime = datetime.datetime.combine(defi[3],datetime.time.max)
 			timeseries = DbWrapper.getTimeSeries(dbwrapper,plants,startTime,endTime)
-			print len(timeseries)," data elements"
 
 			# ...and away we go
-			# kpiObj = KPIs()
-			# kpis = KPIs.calculateKPIs(kpiObj,plants,timeseries)
+			kpiObj = KPIs()
+			kpis = KPIs.calculateKPIs(kpiObj,plants,timeseries)
 
 			# save the KPIs for retrieval by the services
+			DbWrapper.saveKpi(dbwrapper,id,kpis['DCRating'])
+			DbWrapper.saveKpi(dbwrapper,id,kpis['MonthlyInsolation'])
+			DbWrapper.saveKpi(dbwrapper,id,kpis['MonthlyGeneratedEnergy'])
+			DbWrapper.saveKpi(dbwrapper,id,kpis['MonthlyYield'])
+			DbWrapper.saveKpi(dbwrapper,id,kpis['PerformanceRatio'])
+
 
 			# indicate that this reportrun is ready to be viewed
 			now = datetime.datetime.now()
