@@ -25,7 +25,12 @@ class DbWrapper(object):
 		try:
 			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
 			cursor = db.cursor()
-			query = "update osparc_reportrun set status=%d,runstarttime='%s' where id=%d" % (status,time,id)
+			if status == 5:	# changing to processing
+				query = "update osparc_reportrun set status=%d,runstarttime='%s' where id=%d" % (status,time,id)
+			elif status == 1: # changing to ready
+				query = "update osparc_reportrun set status=%d,runcompletetime='%s' where id=%d" % (status,time,id)
+			else:
+				return
 			cursor.execute(query)
 			db.commit()
 			db.close()
@@ -34,16 +39,49 @@ class DbWrapper(object):
 
 	def readDef(self,defId):
 		try:
-			runquery = "select * from osparc_reportdefinition where id=%d" % (defId)
-			print runquery
+			query = "select * from osparc_reportdefinition where id=%d" % (defId)
 			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
 			cursor = db.cursor()
-			cursor.execute(runquery)
+			cursor.execute(query)
 			defi = cursor.fetchone()
-			print defi[0],defi[1],defi[2],defi[3],defi[4],defi[5],defi[6]
 			db.close
 			return defi
 		except:
 			print "ERROR reading defs"
+
+	def getPlants(self,attr,op,value):
+		try:
+			if attr != "":
+				query = "select id,dcrating,storageoriginalcapacity,storagecurrentcapacity from osparc_plant where %s %s %s" % (attr,op,value)
+			else:
+				query = "select id,dcrating,storageoriginalcapacity,storagecurrentcapacity from osparc_plant"
+			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
+			cursor = db.cursor()
+			cursor.execute(query)
+			plants = cursor.fetchall()
+			db.close
+			return plants
+		except:
+			print "ERROR getting plants"
+
+	def getTimeSeries(self,plants,startTime,endTime):
+		try:
+			plantIds = list()
+			for plant in plants:
+				plantIds.append(str(plant[0]))
+			plantIdsStr = ','.join(plantIds)
+			query = "select * from osparc_planttimeseries where plant_id in (%s) and timestamp between '%s' and '%s'" % (plantIdsStr,startTime,endTime)
+			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
+			cursor = db.cursor()
+			cursor.execute(query)
+			results = cursor.fetchall()
+			db.close
+			return results
+		except:
+			print "ERROR getting timeseries"
+
+
+
+
 
 

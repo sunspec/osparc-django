@@ -101,7 +101,7 @@ class ReportDefinitionSerializer(serializers.ModelSerializer):
 class ReportRunSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ReportRun
-        fields = ("id","status","reportdefinition","runsubmittime","runstarttime","runscompletetime","observationstartdate",
+        fields = ("id","status","reportdefinition","runsubmittime","runstarttime","runcompletetime","observationstartdate",
                 "observationenddate","numberofobservations","numberofplants","totaldccapacity","totalstoragecapacity")
 
 

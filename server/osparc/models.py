@@ -172,7 +172,7 @@ class ReportRun(models.Model):
     reportdefinition = models.ForeignKey(ReportDefinition)
     runsubmittime = models.DateTimeField(auto_now_add=True) # time user ordered the report
     runstarttime = models.DateTimeField(blank=True,null=True)  # time report preparation actually began
-    runscompletetime = models.DateField(blank=True,null=True)  # time report preparation actually completed
+    runcompletetime = models.DateTimeField(blank=True,null=True)  # time report preparation actually completed
     observationstartdate = models.DateTimeField(blank=True,null=True)  # time plant observation started
     observationenddate = models.DateField(blank=True,null=True)  # time plant observation ended
     numberofobservations = models.IntegerField(blank=True,null=True)

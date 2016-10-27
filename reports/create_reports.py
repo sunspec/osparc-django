@@ -16,16 +16,15 @@ url = 'http://localhost:8001/api/reports'
 try:
 	dbwrapper = DbWrapper()
 
+	# get the reportruns. Those with status==pending will be processed.
 	runs = DbWrapper.readRun(dbwrapper)
 
 	print( "retrieved %d rows from osparc_reportruns" % (len(runs)))
 
 	for run in runs:
 
-		print run
-
+		# determine whether to process this reportrun - do so if its status is pending
 		status = run[1]
-		print "status=%d" % (status)
 		if status == 2:		# pending
 
 			# let the system know we're working on this run
@@ -36,31 +35,39 @@ try:
 			defId = run[11]
 			print "defId=%d" % (defId)
 
-			try:
-				defi = DbWrapper.readDef(dbwrapper,defId)
+			# get the definition, which contans the plant filters
+			defi = DbWrapper.readDef(dbwrapper,defId)
 
-				startTime = datetime.datetime.combine(defi[2],datetime.time.min)
-				endTime = datetime.datetime.combine(defi[3],datetime.time.max)
-				timeWhere = "where timestamp between '%s' and '%s'" % (startTime,endTime)
+			# use the plant filter from definition to get the set of plants
+			# participating in the report
+			attr = defi[4]
+			op = defi[5]
+			value = defi[6]
+			plants = DbWrapper.getPlants(dbwrapper,attr,op,value)
+			print len(plants)," plants"
 
-				attr = defi[4]
-				op = defi[5]
-				value = defi[6]
-				plantWhere = "where '%s' %s '%s'" % (attr,op,value)
+			# use the time filter from the reportrun, and the set of plants 
+			# retrieved above, to get the set of timeseries elements to be used
+			# to calculate the kpis for the report
+			startTime = datetime.datetime.combine(defi[2],datetime.time.min)
+			endTime = datetime.datetime.combine(defi[3],datetime.time.max)
+			timeseries = DbWrapper.getTimeSeries(dbwrapper,plants,startTime,endTime)
+			print len(timeseries)," data elements"
 
-				kpis = KPIs()
+			# ...and away we go
+			# kpiObj = KPIs()
+			# kpis = KPIs.calculateKPIs(kpiObj,plants,timeseries)
 
-				KPIs.calculateKPIs(kpis,plantWhere,timeWhere)
+			# save the KPIs for retrieval by the services
 
-				time.sleep(1)
+			# indicate that this reportrun is ready to be viewed
+			now = datetime.datetime.now()
+			DbWrapper.updateRun(dbwrapper,id,now,1)
 
-			except:
-				print "ERROR processing defs"
-
-
+			time.sleep(1)
 
 except:
-	print "ERROR getting runs"
+	print "ERROR processing runs"
 
  
 
