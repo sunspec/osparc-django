@@ -3,6 +3,7 @@ import collections
 import datetime
 import sys
 import math
+import uuid
 
 #import library
 from django.db import connection
@@ -67,6 +68,20 @@ class PlantList(generics.ListCreateAPIView):
         if uuid is not None:
             queryset = queryset.filter(uuid=uuid)
         return queryset
+
+    # override create in order to generate a random uuid if one is not provided
+    def perform_create(self, serializer):
+        print "in perform_create"
+        instance = serializer.save()
+        print instance.uuid
+        if instance.uuid == None or instance.uuid == "":
+            newid = uuid.uuid4()
+            print newid
+            ser = PlantSerializer(instance, data={'uuid': str(uuid.uuid4())}, partial=True)     
+            print ser.is_valid()
+            print ser.errors
+            if ser.is_valid():
+                ser.save()
 
 class PlantDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Plant.objects.all()
