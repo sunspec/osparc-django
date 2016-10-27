@@ -36,12 +36,6 @@ class Plant(models.Model):
     postalcode = models.CharField(max_length=6,default='')
     dcrating = models.FloatField(blank=True, null=True)     # watts (NOT kilo-watts)
     storageoriginalcapacity = models.FloatField(blank=True,null=True)
-    link = models.CharField(max_length=254,blank=True,null=True)
-    def __str__(self):
-        return self.name
-
-class PlantDetails(models.Model):
-    plant = models.ForeignKey(Plant)
     description = models.CharField(max_length=254, blank=True, null=True)
     county = models.CharField(max_length=32,default='')
     city = models.CharField(max_length=32,default='')

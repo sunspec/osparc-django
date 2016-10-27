@@ -37,15 +37,19 @@ class PlantTypeSerializer(serializers.HyperlinkedModelSerializer):
 class PlantSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.Plant
-        fields = ("id","uuid","name","activationdate","dcrating","postalcode","state")
-
-class PlantDetailsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Plant
-        fields = ("description","county","city",
+        fields = ("id","uuid","name","activationdate","dcrating","postalcode","state",
+            "description","county","city",
             "latitude","longitude","timezone","weathersource","derate","trackertype","tilt","azimuth",
             "storageoriginalcapacity","storagecurrentcapacity","storagestateofcharge","accountid",
             "versioncreationtime","versionid","solaranywheresite")
+
+# class PlantDetailsSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = models.Plant
+#         fields = ("description","county","city",
+#             "latitude","longitude","timezone","weathersource","derate","trackertype","tilt","azimuth",
+#             "storageoriginalcapacity","storagecurrentcapacity","storagestateofcharge","accountid",
+#             "versioncreationtime","versionid","solaranywheresite")
 
 # class PlantSummarySerializer(PlantSerializer):
 #     def __init__(self,*args,**kwargs):
