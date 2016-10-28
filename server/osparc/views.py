@@ -101,7 +101,7 @@ class ReportDefinitionList(generics.ListCreateAPIView):
             defId = serializer.save()
 
             # Create a reportRun; an async process will run it and create the results
-            rr = { "reportdefinition":defId.id }
+            rr = { "reportdefinition":defId.id,"status":2,"kpis":[] }
             rrser = ReportRunSerializer(data=rr)
             if rrser.is_valid():
                 rrser.save()
