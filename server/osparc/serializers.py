@@ -101,8 +101,9 @@ class ReportRunSerializer(serializers.ModelSerializer):
     kpis = KPISerializer(source='kpi_set',many=True)
     class Meta:
         model = models.ReportRun
-        fields = ("id","status","reportdefinition","runsubmittime","runstarttime","runcompletetime","observationstartdate",
-                "observationenddate","numberofobservations","numberofplants","totaldccapacity","totalstoragecapacity","kpis")
+        depth = 1
+        fields = ("id","status","reportdefinition","runsubmittime","runstarttime","runcompletetime","firstmeasurementdate",
+                "lastmeasurementdate","numberofmeasurements","numberofplants","totaldccapacity","totalstoragecapacity","kpis")
 
 
 
