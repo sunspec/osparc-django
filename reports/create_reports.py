@@ -51,6 +51,8 @@ try:
 			endTime = datetime.datetime.combine(defi[3],datetime.time.max)
 			timeseries = DbWrapper.getTimeSeries(dbwrapper,plants,startTime,endTime)
 
+			print "creating report with %d plants, %d timeseries elements" % (len(plants),len(timeseries))
+
 			# The results are saved as a summary in the reportrun table, and a set of
 			# kpis, in the kpi table. Kpi table entries have a foreign key to the reportrun table
 
@@ -66,6 +68,7 @@ try:
 			# update the reportrun table with the summary of the run...
 			summary = collections.defaultdict(int)
 			summary["numberofplants"] = len(plants)
+			summary["numberofobservations"] = len(timeseries)
 			summary["observationstartdate"] = defi[2]
 			summary["observationenddate"] = defi[3]
 			DbWrapper.updateRunSummary(dbwrapper,runid,summary)

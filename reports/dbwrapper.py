@@ -36,19 +36,13 @@ class DbWrapper(object):
 		except:
 			print "ERROR updating runstatus"
 
-	def updateRunSummary(self,id,summary):
+	def updateRunSummary(self,runid,summary):
 		try:
-			summary["numberofplants"] = len(plants)
-			summary["numberofobservations"] = len(timeseries)
-			summary["observationstartdate"] = KPIs.getEarliestDate(kpiObj,kpis)
-			summary["observationenddate"] = KPIs.getLatestDate(kpiObj,kpis)
 			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
 			cursor = db.cursor()
-			query = "update osparc_reportrun set numberofplants=%d,\
-					numberofobservations='%s',observationstartdate='%s',observationenddate='%s' \
-					where id=%d" % \
-					(summary["numberofplants"],summary["numberofobservations"],
-					summary["observationstartdate"],summary["observationenddate"],id)
+			query = "update osparc_reportrun set numberofplants=%d,numberofobservations=%d,observationstartdate='%s',observationenddate='%s' \
+where id=%d" % \
+(summary["numberofplants"],summary["numberofobservations"],summary["observationstartdate"],summary["observationenddate"],runid)
 			cursor.execute(query)
 			db.commit()
 			db.close()
@@ -105,8 +99,8 @@ class DbWrapper(object):
 			# there must be only one (reportrun,kpi) tuple per reportrun and kpi (if one doesn't exist, query has no effect)
 			query1 = "delete from osparc_kpi where name='%s' and reportrun_id=%d" % (kpi["name"],runId)
 			query = "insert into osparc_kpi (name,plants,firstday,lastday,mean,median,minimum,maximum,reportrun_id) values \
-('%s',%d,'%s','%s',%d,%d,%d,%d,%d)" % \
-(kpi["name"],kpi["plants"],kpi["firstday"],kpi["lastday"],kpi["mean"],kpi["median"],kpi["minimum"],kpi["maximum"],runId)
+				('%s',%d,'%s','%s',%d,%d,%d,%d,%d)" % \
+				(kpi["name"],kpi["plants"],kpi["firstday"],kpi["lastday"],kpi["mean"],kpi["median"],kpi["minimum"],kpi["maximum"],runId)
 			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
 			cursor = db.cursor()
 			cursor.execute(query1)

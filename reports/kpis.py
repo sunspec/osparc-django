@@ -121,9 +121,6 @@ class KPIs(object):
         return None
 
     def calculateKPIs( self, plants, timeseries ):
-        print "in calculateKPIs"
-        print "plants: %d" % len(plants)
-        print "timeseries: %d" % len(timeseries)
 
         dcList = list()
         storCapList = list()
