@@ -91,7 +91,6 @@ class KPISerializer(serializers.ModelSerializer):
         model = models.KPI
         fields = ("name","reportrun","plants","firstday","lastday","mean","median","minimum","maximum")
 
-
 class ReportDefinitionSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
     class Meta:
@@ -99,10 +98,11 @@ class ReportDefinitionSerializer(serializers.ModelSerializer):
         fields = ("id","name","observationstartdate","observationenddate","plantfilterattribute","plantfilteroperation","plantfiltervalue")
 
 class ReportRunSerializer(serializers.ModelSerializer):
+    kpis = KPISerializer(source='kpi_set',many=True)
     class Meta:
         model = models.ReportRun
         fields = ("id","status","reportdefinition","runsubmittime","runstarttime","runcompletetime","observationstartdate",
-                "observationenddate","numberofobservations","numberofplants","totaldccapacity","totalstoragecapacity")
+                "observationenddate","numberofobservations","numberofplants","totaldccapacity","totalstoragecapacity","kpis")
 
 
 
