@@ -8,6 +8,7 @@
 import MySQLdb
 import datetime
 import time
+import collections
 from kpis import KPIs
 from dbwrapper import DbWrapper
 
@@ -28,9 +29,9 @@ try:
 		if status == 2:		# pending
 
 			# let the system know we're working on this run
-			id = run[0]
+			runid = run[0]
 			now = datetime.datetime.now()
-			DbWrapper.updateRun(dbwrapper,id,now,5)
+			DbWrapper.updateRunStatus(dbwrapper,runid,now,5)
 
 			# get the definition, which contans the plant filters
 			defId = run[11]
@@ -50,23 +51,28 @@ try:
 			endTime = datetime.datetime.combine(defi[3],datetime.time.max)
 			timeseries = DbWrapper.getTimeSeries(dbwrapper,plants,startTime,endTime)
 
-			# ...and away we go
+			# The results are saved as a summary in the reportrun table, and a set of
+			# kpis, in the kpi table. Kpi table entries have a foreign key to the reportrun table
+
+			# calculate and save the KPIs
 			kpiObj = KPIs()
 			kpis = KPIs.calculateKPIs(kpiObj,plants,timeseries)
+			DbWrapper.saveKpi(dbwrapper,runid,kpis['DCRating'])
+			DbWrapper.saveKpi(dbwrapper,runid,kpis['MonthlyInsolation'])
+			DbWrapper.saveKpi(dbwrapper,runid,kpis['MonthlyGeneratedEnergy'])
+			DbWrapper.saveKpi(dbwrapper,runid,kpis['MonthlyYield'])
+			DbWrapper.saveKpi(dbwrapper,runid,kpis['PerformanceRatio'])
 
-			# save the KPIs for retrieval by the services
-			DbWrapper.saveKpi(dbwrapper,id,kpis['DCRating'])
-			DbWrapper.saveKpi(dbwrapper,id,kpis['MonthlyInsolation'])
-			DbWrapper.saveKpi(dbwrapper,id,kpis['MonthlyGeneratedEnergy'])
-			DbWrapper.saveKpi(dbwrapper,id,kpis['MonthlyYield'])
-			DbWrapper.saveKpi(dbwrapper,id,kpis['PerformanceRatio'])
+			# update the reportrun table with the summary of the run...
+			summary = collections.defaultdict(int)
+			summary["numberofplants"] = len(plants)
+			summary["observationstartdate"] = defi[2]
+			summary["observationenddate"] = defi[3]
+			DbWrapper.updateRunSummary(dbwrapper,runid,summary)
 
-
-			# indicate that this reportrun is ready to be viewed
+			# ...and the status, indicating that it's ready to be viewed
 			now = datetime.datetime.now()
-			DbWrapper.updateRun(dbwrapper,id,now,1)
-
-			time.sleep(1)
+			DbWrapper.updateRunStatus(dbwrapper,runid,now,1)
 
 except:
 	print "ERROR processing runs"

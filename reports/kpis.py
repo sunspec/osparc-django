@@ -51,22 +51,21 @@ class KPIs(object):
         currentPlant = 0
         numberOfPlants = 0
 
-        if len(entryList) > 0:
-            for entry in entryList:
-                if entry.plantId != currentPlant:
-                    currentPlant = entry.plantId
-                    numberOfPlants = numberOfPlants+1 # there are multiple entries from the same plant
-                # print( "currentPlant=%d, entry.plantId=%d, numberOfPlants=%d" % (currentPlant,entry.plantId,numberOfPlants))
-                if entry.timestamp < firstEntry:
-                    firstEntry = entry.timestamp
-                if entry.timestamp > lastEntry:
-                    lastEntry = entry.timestamp
-                total += entry.value
-                if entry.value < minValue:
-                    minValue = entry.value
-                if entry.value > maxValue:
-                    maxValue = entry.value
-                valueList.append(entry.value)
+        for entry in entryList:
+            if entry.plantId != currentPlant:
+                currentPlant = entry.plantId
+                numberOfPlants = numberOfPlants+1 # there are multiple entries from the same plant
+            # print( "currentPlant=%d, entry.plantId=%d, numberOfPlants=%d" % (currentPlant,entry.plantId,numberOfPlants))
+            if entry.timestamp < firstEntry:
+                firstEntry = entry.timestamp
+            if entry.timestamp > lastEntry:
+                lastEntry = entry.timestamp
+            total += entry.value
+            if entry.value < minValue:
+                minValue = entry.value
+            if entry.value > maxValue:
+                maxValue = entry.value
+            valueList.append(entry.value)
 
         kpi = collections.defaultdict(dict)
         kpi['name'] = name
@@ -194,4 +193,7 @@ class KPIs(object):
             result['PerformanceRatio']['name'] = 'PerformanceRatio'
 
         return result
+
+
+
 
