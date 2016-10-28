@@ -341,7 +341,7 @@ class AggregatesView(APIView):
         result = dict(AggregatesView.totals(self))
 
         #  kpis
-        result['kpis'] = KPISerializer(KPI.objects.all(), many=True).data
+        result['kpis'] = KPISerializer(KPI.objects.all(), context={'request': request}, many=True).data
 
         # wacky groupings if needed
 
