@@ -162,7 +162,8 @@ class KPIs(object):
         yrList = list()
         for eArray in timeseries:
 
-            entry = PlantTimeSeries(eArray[0],eArray[1],eArray[2],eArray[3],eArray[4],eArray[5],eArray[6],eArray[7])
+            entry = PlantTimeSeries(eArray[0],eArray[1],eArray[2],eArray[3],eArray[4],eArray[5],eArray[6],eArray[8])
+            # (eArray[7] is recordStatus)
 
             if entry.GHI_DIFF is not None:
                 ghiList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.GHI_DIFF,1) )
