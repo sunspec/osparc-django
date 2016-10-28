@@ -370,7 +370,7 @@ class AggregatesView(APIView):
                 result['bystate'] = AggregatesView.plantsByState(self,plants)
 
             if year == True and dc == False:
-                result['byyear'] = StatsView.plantsByYear(self,plants)
+                result['byyear'] = AggregatesView.plantsByYear(self,plants)
 
             if year == True and dc == True:
                 result['byyearanddcrating'] = AggregatesView.plantsByYearAndDcrating(self,plants)
