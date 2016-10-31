@@ -22,7 +22,7 @@ from rest_framework.mixins import ListModelMixin
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 
 from osparc.models import Account,UploadActivity,PlantType,Plant,PlantTimeSeries
-from osparc.models import ReportDefinition,ReportRun
+from osparc.models import ReportDefinition,ReportRun,UploadActivity
 from osparc.models import KPI
 from osparc.serializers import AccountSerializer,UploadActivitySerializer,PlantTypeSerializer,PlantSerializer
 from osparc.serializers import PlantTimeSeriesSerializer,KPISerializer
@@ -46,6 +46,18 @@ class PlantTimeSeriesViewSet(viewsets.ModelViewSet):
     queryset = PlantTimeSeries.objects.all()
     serializer_class = PlantTimeSeriesSerializer
 
+    # override create in order to update the uploadActivity entry
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        try:
+            plant = Plant.objects.get(id=instance.plant_id)
+            ua = UploadActivity.objects.get(id=plant.uploadactivity_id)
+            ua.mostrecenttimeseriesuploadtime = datetime.datetime.now()
+            ua.status = 'success'
+            ua.save()
+        except:
+            print "ERROR updating UA"
+
 class KPIViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = KPI.objects.all()
     serializer_class = KPISerializer
@@ -55,7 +67,6 @@ class KPIView(generics.ListAPIView):
         queryset = KPI.objects.all()
         serializer = KPISerializer(queryset, many=True)
         return Response(serializer.data)
-
 
 
 # plants
@@ -69,14 +80,25 @@ class PlantList(generics.ListCreateAPIView):
             queryset = queryset.filter(uuid=uuid)
         return queryset
 
-    # override create in order to generate a random uuid if one is not provided
+    # override create in order to generate a random uuid if one is not provided,
+    # and to create an UploadActivity entry
     def perform_create(self, serializer):
+
         instance = serializer.save()
+
+        instance.uploadactivity = UploadActivity.objects.create()
+
         if instance.uuid == None or instance.uuid == "":
-            newid = uuid.uuid4()
-            ser = PlantSerializer(instance, data={'uuid': str(uuid.uuid4())}, partial=True)     
-            if ser.is_valid():
-                ser.save()
+            instance.uuid = str(uuid.uuid4());
+            
+        if serializer.is_valid():
+            serializer.save()
+
+        #     ser = PlantSerializer(instance, data={'uploadactivuuid': str(uuid.uuid4())}, partial=True)
+        # else:
+
+        #     if ser.is_valid():
+        #         ser.save()
 
 class PlantDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Plant.objects.all()

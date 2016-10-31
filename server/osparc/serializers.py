@@ -9,7 +9,7 @@ class AccountSerializer(serializers.ModelSerializer):
 class UploadActivitySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.UploadActivity
-        fields = ("account","requestTime","responseTime","plantUUID","status","errorDetail","s3Key")
+        fields = ("plantuploadtime","mostrecenttimeseriesuploadtime","status","errorDetail")
 
 class PlantTypeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -36,12 +36,13 @@ class PlantTypeSerializer(serializers.HyperlinkedModelSerializer):
 
 class PlantSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
+        depth = 1
         model = models.Plant
         fields = ("id","uuid","name","activationdate","dcrating","postalcode","state",
             "description","county","city",
             "latitude","longitude","timezone","weathersource","derate","trackertype","tilt","azimuth",
             "storageoriginalcapacity","storagecurrentcapacity","storagestateofcharge","accountid",
-            "versioncreationtime","versionid","solaranywheresite")
+            "versioncreationtime","versionid","solaranywheresite","uploadactivity")
 
 # class PlantDetailsSerializer(serializers.ModelSerializer):
 #     class Meta:

@@ -28,6 +28,15 @@ class PlantType(models.Model):
     def __str__(self):
         return self.name
 
+class UploadActivity(models.Model):
+    plantuploadtime = models.DateTimeField(auto_now_add=True)
+    mostrecenttimeseriesuploadtime = models.DateTimeField(blank=True,null=True)
+    # plantUUID = models.CharField(max_length=254,blank=True,null=True)
+    status = models.CharField(max_length=16)
+    errorDetail = models.CharField(max_length=1024,blank=True,null=True)
+    # s3Key = models.CharField(max_length=254,blank=True,null=True)
+    # account = models.ForeignKey(Account,blank=True,null=True)
+
 class Plant(models.Model):
     uuid = models.CharField(max_length=254,blank=True,null=True)
     name = models.CharField(max_length=250, blank=True, null=True)
@@ -52,6 +61,7 @@ class Plant(models.Model):
     storagecurrentcapacity  = models.FloatField(blank=True,null=True)
     storagestateofcharge = models.FloatField(blank=True,null=True)
     # plant-meta-meta data
+    uploadactivity = models.ForeignKey(UploadActivity,blank=True,null=True)
     accountid = models.CharField(max_length=250)
     recordstatus = models.IntegerField(default=1)
     versioncreationtime = models.DateTimeField(auto_now_add=True)
@@ -101,20 +111,6 @@ class PlantTimeSeries(models.Model):
     # plantTimeSeries-meta-meta data
     plant = models.ForeignKey(Plant)
     recordstatus = models.IntegerField(default=1) # RECORD_STATUS_ACTIVE
-    def __str__(self):
-        return self.name
-
-class UploadActivity(models.Model):
-    requestTime = models.DateTimeField(auto_now_add=True)
-    responseTime = models.DateTimeField(blank=True,null=True)
-    plantUUID = models.CharField(max_length=254,blank=True,null=True)
-    status = models.CharField(max_length=16)
-    errorDetail = models.CharField(max_length=1024,blank=True,null=True)
-    s3Key = models.CharField(max_length=254)
-    account = models.ForeignKey(Account)
-    plant = models.ForeignKey(Plant)
-    def __str__(self):
-        return self.name
 
 class Total(models.Model):
     dcrating = models.FloatField(blank=True, null=True)
