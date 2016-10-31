@@ -111,6 +111,7 @@ class PlantTimeSeries(models.Model):
     # plantTimeSeries-meta-meta data
     plant = models.ForeignKey(Plant)
     recordstatus = models.IntegerField(default=1) # RECORD_STATUS_ACTIVE
+    plantUUID = models.CharField(max_length=254,blank=True,null=True)
 
 class Total(models.Model):
     dcrating = models.FloatField(blank=True, null=True)

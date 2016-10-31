@@ -85,7 +85,7 @@ class PlantSerializer(serializers.HyperlinkedModelSerializer):
 class PlantTimeSeriesSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.PlantTimeSeries
-        fields = ("timestamp","sampleinterval","WH_DIFF","GHI_DIFF","TMPAMB_AVG","HPOA_DIFF","plant","recordstatus")
+        fields = ("timestamp","sampleinterval","WH_DIFF","GHI_DIFF","TMPAMB_AVG","HPOA_DIFF","plant","recordstatus","plantUUID")
 
 class KPISerializer(serializers.ModelSerializer):
     class Meta:
