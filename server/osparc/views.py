@@ -120,8 +120,11 @@ class PlantList(generics.ListCreateAPIView):
         if instance.uuid == None or instance.uuid == "":
             instance.uuid = str(uuid.uuid4());
             
-        if serializer.is_valid():
-            serializer.save()
+        newser = PlantSerializer(instance, data=instance.__dict__)
+        if newser.is_valid():
+            newser.save()
+        else:
+            print "newser errors:",newser.errors
 
 
 class PlantDetail(generics.RetrieveUpdateDestroyAPIView):
