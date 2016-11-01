@@ -83,9 +83,10 @@ class PlantSerializer(serializers.HyperlinkedModelSerializer):
 #         fields = ("plantuuid","name")
 
 class PlantTimeSeriesSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
     class Meta:
         model = models.PlantTimeSeries
-        fields = ("timestamp","sampleinterval","WH_DIFF","GHI_DIFF","TMPAMB_AVG","HPOA_DIFF","plant","recordstatus","plantUUID")
+        fields = ("id","timestamp","sampleinterval","WH_DIFF","GHI_DIFF","TMPAMB_AVG","HPOA_DIFF","plant","recordstatus","plantUUID")
 
 class KPISerializer(serializers.ModelSerializer):
     class Meta:
@@ -94,15 +95,16 @@ class KPISerializer(serializers.ModelSerializer):
 
 class ReportDefinitionSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
+    runs = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     class Meta:
         model = models.ReportDefinition
-        fields = ("id","name","observationstartdate","observationenddate","plantfilterattribute","plantfilteroperation","plantfiltervalue")
+        fields = ("id","name","observationstartdate","observationenddate","plantfilterattribute","plantfilteroperation","plantfiltervalue","runs")
 
 class ReportRunSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
     kpis = KPISerializer(source='kpi_set',many=True)
     class Meta:
         model = models.ReportRun
-        depth = 1
         fields = ("id","status","reportdefinition","runsubmittime","runstarttime","runcompletetime","firstmeasurementdate",
                 "lastmeasurementdate","numberofmeasurements","numberofplants","totaldccapacity","totalstoragecapacity","kpis")
 

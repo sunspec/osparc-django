@@ -156,7 +156,7 @@ class PlantReport(models.Model):
 # The results of a run of a query
 class ReportRun(models.Model):
     status = models.IntegerField(default=2) # 1=ready, 2=pending, 5=processing, 6=failed, 9=empty
-    reportdefinition = models.ForeignKey(ReportDefinition)
+    reportdefinition = models.ForeignKey(ReportDefinition,related_name='runs')
     runsubmittime = models.DateTimeField(auto_now_add=True) # time user ordered the report
     runstarttime = models.DateTimeField(blank=True,null=True)  # time report preparation actually began
     runcompletetime = models.DateTimeField(blank=True,null=True)  # time report preparation actually completed
@@ -166,6 +166,7 @@ class ReportRun(models.Model):
     numberofplants = models.IntegerField(blank=True,null=True)
     totaldccapacity = models.FloatField(blank=True,null=True)
     totalstoragecapacity = models.FloatField(blank=True,null=True)
+
 
 class KPI(models.Model):
     name = models.CharField(max_length=254, blank=True, null=True)

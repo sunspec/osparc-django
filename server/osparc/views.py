@@ -115,37 +115,60 @@ class ReportDefinitionList(generics.ListCreateAPIView):
             queryset = queryset.filter(uuid=uuid)
         return queryset
 
-    def post(self, request, format=None):
+    # def post(self, request, format=None):
 
-        # save the report definition
-        serializer = ReportDefinitionSerializer(data=request.data)
-        if serializer.is_valid():
-            defId = serializer.save()
+    #     print request.data
 
-            # Create a reportRun; an async process will run it and create the results
-            rr = { "reportdefinition":defId.id,"status":2,"kpis":[] }
-            rrser = ReportRunSerializer(data=rr)
-            if rrser.is_valid():
-                rrser.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #     # save the report definition
+    #     serializer = ReportDefinitionSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         defId = serializer.save()
 
-            return Response(rrser.errors, status=status.HTTP_400_BAD_REQUEST)
+    #         print defId.id
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    #         # Create a reportRun; an async process will run it and create the results
+    #         rr = { "reportdefinition":defId.id,"status":2,"kpis":[] }
+    #         rrser = ReportRunSerializer(data=rr)
+    #         if rrser.is_valid():
+    #             rrser.save()
+    #             return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #         else:
+    #             print rrser.errors
+
+    #         return Response(rrser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ReportDefinitionDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = ReportDefinition.objects.all()
     serializer_class = ReportDefinitionSerializer
 
 class ReportRunList(generics.ListCreateAPIView):
+    queryset = ReportRun.objects.all()
     serializer_class = ReportRunSerializer
 
-    def get_queryset(self):
-        queryset = ReportRun.objects.all()
-        uuid = self.request.query_params.get('uuid', None)
-        if uuid is not None:
-            queryset = queryset.filter(uuid=uuid)
-        return queryset
+    # def get_queryset(self):
+    #     queryset = ReportRun.objects.all()
+    #     uuid = self.request.query_params.get('uuid', None)
+    #     if uuid is not None:
+    #         queryset = queryset.filter(uuid=uuid)
+    #     return queryset
+
+    # def perform_create(self, serializer):
+
+        # rrDict = {'reportdefinition':reportDef,'status':2,'kpis':[]}
+
+        # rrser = ReportRunSerializer(data=rrDict)
+        # if rrser.is_valid():
+        #     rrser.save()
+        #     print rrser.data
+        #     print rrser.errors
+        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # else:
+        #     print rrser.errors
+
+        # return Response(rrser.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ReportRunDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = ReportRun.objects.all()
