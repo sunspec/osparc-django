@@ -48,15 +48,44 @@ class PlantTimeSeriesViewSet(viewsets.ModelViewSet):
 
     # override create in order to update the uploadActivity entry
     def perform_create(self, serializer):
+
         instance = serializer.save()
+
+        # Find the plant associated with this timeseries element.
+        # If the timeseries element's plant attribute is set, it is the db id
+        # of the plant. If not, then it is specified by the timeseries element's uuid.
+        # That is the case of importing from oSPARC v1, where the timeseries' plant
+        # attribute is not imported because the db id of the plant is likely different
+        # in oSPARC v2.
+
+        print instance.plant, instance.plantUUID
+
         try:
-            plant = Plant.objects.get(id=instance.plant_id)
-            ua = UploadActivity.objects.get(id=plant.uploadactivity_id)
-            ua.mostrecenttimeseriesuploadtime = datetime.datetime.now()
-            ua.status = 'success'
-            ua.save()
+            if instance.plant != None and instance.plant > 0:
+                plant = Plant.objects.get(id=instance.plant_id)
+            else:
+                plant = Plant.objects.get(uuid=instance.plantUUID)
+
+                print plant
+
+                instance.plant = plant
+                if serializer.is_valid():
+                    serializer.save()
+                else:
+                    print serializer.errors
+
+            try:
+                ua = UploadActivity.objects.get(id=plant.uploadactivity_id)
+                ua.mostrecenttimeseriesuploadtime = datetime.datetime.now()
+                ua.status = 'success'
+                ua.save()
+            except:
+                print "ERROR updating UA"
+
         except:
-            print "ERROR updating UA"
+            print "Unable to locate plant for timeseries %s" % instance.timestamp
+            return
+
 
 class KPIViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = KPI.objects.all()
@@ -94,11 +123,6 @@ class PlantList(generics.ListCreateAPIView):
         if serializer.is_valid():
             serializer.save()
 
-        #     ser = PlantSerializer(instance, data={'uploadactivuuid': str(uuid.uuid4())}, partial=True)
-        # else:
-
-        #     if ser.is_valid():
-        #         ser.save()
 
 class PlantDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Plant.objects.all()
