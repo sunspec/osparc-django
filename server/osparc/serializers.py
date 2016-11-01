@@ -40,7 +40,7 @@ class PlantSerializer(serializers.HyperlinkedModelSerializer):
         model = models.Plant
         fields = ("id","uuid","name","activationdate","dcrating","postalcode","state",
             "description","county","city",
-            "latitude","longitude","timezone","weathersource","derate","trackertype","tilt","azimuth",
+            "latitude","longitude","timezone","weathersource","derate","arraytype","tilt","azimuth",
             "storageoriginalcapacity","storagecurrentcapacity","storagestateofcharge","accountid",
             "versioncreationtime","versionid","solaranywheresite","uploadactivity")
 

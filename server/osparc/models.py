@@ -54,14 +54,14 @@ class Plant(models.Model):
     weathersource = models.CharField(max_length=32, blank=True, null=True) # CPR or local
     derate = models.FloatField(blank=True, null=True)
     # from PVArray
-    trackertype = models.CharField(max_length=32)
-    tilt = models.IntegerField()
-    azimuth = models.IntegerField()
+    arraytype = models.CharField(max_length=32,blank=True, null=True)
+    tilt = models.IntegerField(blank=True, null=True)
+    azimuth = models.IntegerField(blank=True, null=True)
     # from StorageSystem
     storagecurrentcapacity  = models.FloatField(blank=True,null=True)
     storagestateofcharge = models.FloatField(blank=True,null=True)
     # plant-meta-meta data
-    uploadactivity = models.ForeignKey(UploadActivity,blank=True,null=True)
+    uploadactivity = models.ForeignKey(UploadActivity,on_delete=models.CASCADE,blank=True,null=True)
     accountid = models.CharField(max_length=250)
     recordstatus = models.IntegerField(default=1)
     versioncreationtime = models.DateTimeField(auto_now_add=True)

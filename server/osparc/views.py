@@ -126,7 +126,6 @@ class PlantList(generics.ListCreateAPIView):
         else:
             print "newser errors:",newser.errors
 
-
 class PlantDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Plant.objects.all()
     serializer_class = PlantSerializer
