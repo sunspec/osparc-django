@@ -59,23 +59,26 @@ try:
 			# calculate and save the KPIs
 			kpiObj = KPIs()
 			kpis = KPIs.calculateKPIs(kpiObj,plants,timeseries)
-			DbWrapper.saveKpi(dbwrapper,runid,kpis['DCRating'])
-			DbWrapper.saveKpi(dbwrapper,runid,kpis['MonthlyInsolation'])
-			DbWrapper.saveKpi(dbwrapper,runid,kpis['MonthlyGeneratedEnergy'])
-			DbWrapper.saveKpi(dbwrapper,runid,kpis['MonthlyYield'])
-			DbWrapper.saveKpi(dbwrapper,runid,kpis['PerformanceRatio'])
 
-			# update the reportrun table with the summary of the run...
-			summary = collections.defaultdict(int)
-			summary["numberofplants"] = len(plants)
-			summary["numberofobservations"] = len(timeseries)
-			summary["observationstartdate"] = defi[2]
-			summary["observationenddate"] = defi[3]
-			DbWrapper.updateRunSummary(dbwrapper,runid,summary)
+			if kpis is not None:
 
-			# ...and the status, indicating that it's ready to be viewed
-			now = datetime.datetime.now()
-			DbWrapper.updateRunStatus(dbwrapper,runid,now,1)
+				DbWrapper.saveKpi(dbwrapper,runid,kpis['DCRating'])
+				DbWrapper.saveKpi(dbwrapper,runid,kpis['MonthlyInsolation'])
+				DbWrapper.saveKpi(dbwrapper,runid,kpis['MonthlyGeneratedEnergy'])
+				DbWrapper.saveKpi(dbwrapper,runid,kpis['MonthlyYield'])
+				DbWrapper.saveKpi(dbwrapper,runid,kpis['PerformanceRatio'])
+
+				# update the reportrun table with the summary of the run...
+				summary = collections.defaultdict(int)
+				summary["numberofplants"] = len(plants)
+				summary["numberofmeasurements"] = len(timeseries)
+				summary["firstmeasurementdate"] = defi[2]	# note: get this from timeseries instead!
+				summary["lastmeasurementdate"] = defi[3]	# ditto
+				DbWrapper.updateRunSummary(dbwrapper,runid,summary)
+
+				# ...and the status, indicating that it's ready to be viewed
+				now = datetime.datetime.now()
+				DbWrapper.updateRunStatus(dbwrapper,runid,now,1)
 
 except:
 	print "ERROR processing runs"

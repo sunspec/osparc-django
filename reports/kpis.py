@@ -126,19 +126,24 @@ class KPIs(object):
         storCapList = list()
         storSOHList = list()
 
-        for pArray in plants:
-            # look, daddy's own little ORM!
-            plant = Plant(pArray[0],pArray[1],pArray[2],pArray[3],pArray[4])
+        try:
+            for pArray in plants:
+                # look, daddy's own little ORM!
+                plant = Plant(pArray[0],pArray[1],pArray[2],pArray[3],pArray[4])
 
-            if plant.dcrating is not None:
-                dcList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.dcrating,1) )
-                # dcratingArray[plant.id] = plant.dcrating
-            if plant.storageoriginalcapacity is not None:
-                storCapList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storageoriginalcapacity,1) )
-                if plant.storagecurrentcapacity is not None:
-                    storSOHList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storagecurrentcapacity,plant.storageoriginalcapacity) )
-                else:
+                if plant.dcrating is not None:
+                    dcList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.dcrating,1) )
+                    # dcratingArray[plant.id] = plant.dcrating
+                if plant.storageoriginalcapacity is not None:
                     storCapList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storageoriginalcapacity,1) )
+                    if plant.storagecurrentcapacity is not None:
+                        storSOHList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storagecurrentcapacity,plant.storageoriginalcapacity) )
+                    else:
+                        storCapList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storageoriginalcapacity,1) )
+        except:
+            print "FAILED reading plant dcrating or storagecapacity"
+            return None
+
 
         # Fill in the plant-related KPIs
         result = collections.defaultdict(dict)
@@ -160,19 +165,24 @@ class KPIs(object):
         whList = list()
         yfList = list()
         yrList = list()
-        for eArray in timeseries:
 
-            entry = PlantTimeSeries(eArray[0],eArray[1],eArray[2],eArray[3],eArray[4],eArray[5],eArray[6],eArray[8])
-            # (eArray[7] is recordStatus)
+        try:
+            for eArray in timeseries:
 
-            if entry.GHI_DIFF is not None:
-                ghiList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.GHI_DIFF,1) )
-            if entry.WH_DIFF is not None:
-                whList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.WH_DIFF,1) )
-                dcrating = KPIs.findPlantsDcrating(self,plants,entry.plant)
-                yfList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.WH_DIFF,dcrating) )
-            if entry.HPOA_DIFF is not None:
-                yrList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.HPOA_DIFF,1000) )
+                entry = PlantTimeSeries(eArray[0],eArray[1],eArray[2],eArray[3],eArray[4],eArray[5],eArray[6],eArray[9])
+                # (eArray[7] is plantUUID, eArray[8] is recordStatus)
+
+                if entry.GHI_DIFF is not None:
+                    ghiList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.GHI_DIFF,1) )
+                if entry.WH_DIFF is not None:
+                    whList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.WH_DIFF,1) )
+                    dcrating = KPIs.findPlantsDcrating(self,plants,entry.plant)
+                    yfList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.WH_DIFF,dcrating) )
+                if entry.HPOA_DIFF is not None:
+                    yrList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.HPOA_DIFF,1000) )
+        except:
+            print "FAILED reading timeseries"
+            return None
 
         # Now calculate the KPIs
 

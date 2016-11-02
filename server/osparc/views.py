@@ -132,14 +132,15 @@ class PlantDetail(generics.RetrieveUpdateDestroyAPIView):
 
 # queries & reports
 class ReportDefinitionList(generics.ListCreateAPIView):
+    queryset = ReportDefinition.objects.all()
     serializer_class = ReportDefinitionSerializer
 
-    def get_queryset(self):
-        queryset = ReportDefinition.objects.all()
-        uuid = self.request.query_params.get('uuid', None)
-        if uuid is not None:
-            queryset = queryset.filter(uuid=uuid)
-        return queryset
+    # def get_queryset(self):
+    #     queryset = ReportDefinition.objects.all()
+    #     uuid = self.request.query_params.get('uuid', None)
+    #     if uuid is not None:
+    #         queryset = queryset.filter(uuid=uuid)
+    #     return queryset
 
     # def post(self, request, format=None):
 

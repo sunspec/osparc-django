@@ -37,6 +37,7 @@ class DbWrapper(object):
 			print "ERROR updating runstatus"
 
 	def updateRunSummary(self,runid,summary):
+		print "updating run",runid,summary
 		try:
 			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
 			cursor = db.cursor()
