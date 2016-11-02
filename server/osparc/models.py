@@ -45,10 +45,10 @@ class PlantReport(models.Model):
     sampleinterval = models.CharField(max_length=64,default='monthly')
     firstmeasurementdate = models.DateField(blank=True,null=True)
     lastmeasurementdate = models.DateField(blank=True,null=True)
-    yf = models.FloatField(blank=True,null=True)    # production yield kWh/kWdc
+    monthlyyield = models.FloatField(blank=True,null=True)    # production yield kWh/kWdc
     # yr = models.FloatField(blank=True,null=True)    # insolation yield kWh/m2/1000
-    pr = models.FloatField(blank=True,null=True)    # performance ratio yf/yr
-    soh = models.FloatField(blank=True,null=True)   # storage state of health
+    performanceratio = models.FloatField(blank=True,null=True)    # performance ratio yf/yr
+    storagestateofhealth = models.FloatField(blank=True,null=True)   # storage state of health
 
 class Plant(models.Model):
     uuid = models.CharField(max_length=254,blank=True,null=True)

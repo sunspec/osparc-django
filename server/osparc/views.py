@@ -62,15 +62,11 @@ class PlantTimeSeriesViewSet(viewsets.ModelViewSet):
         # re-generated (since there is new data). We invalidate it here if it exists,
         # and it is recalculated asynchronously.
 
-        print instance.plant, instance.plantUUID
-
         try:
             if instance.plant != None and instance.plant > 0:
                 plant = Plant.objects.get(id=instance.plant_id)
             else:
                 plant = Plant.objects.get(uuid=instance.plantUUID)
-
-                print plant
 
                 instance.plant = plant
                 if serializer.is_valid():
@@ -91,9 +87,9 @@ class PlantTimeSeriesViewSet(viewsets.ModelViewSet):
 
             # (2) invalidate the plantreport
             try:
-                report = PlantReport.objects.get(pk=plant.plantreport)
+                report = plant.plantreport
                 report.recordstatus = 9     # invalid
-                newser = PlantReportSerializer(instance, data=report.__dict__)
+                newser = PlantReportSerializer(report, data=report.__dict__)
                 if newser.is_valid():
                     newser.save()
                 else:
@@ -198,9 +194,9 @@ class PlantDetail(mixins.RetrieveModelMixin,
                                     'sampleinterval':'monthly',
                                     'firstmeasurementdate':kpis['PerformanceRatio']['firstday'],
                                     'lastmeasurementdate':kpis['PerformanceRatio']['lastday'],
-                                    'yf':kpis['MonthlyYield']['mean'], # production yield kWh/kWdc
-                                    'pr':kpis['PerformanceRatio']['mean'], # performance ratio yf/yr
-                                    'soh':kpis['StorageStateOfHealth']['mean']
+                                    'monthlyyield':kpis['MonthlyYield']['mean'], # production yield kWh/kWdc
+                                    'performanceratio':kpis['PerformanceRatio']['mean'], # performance ratio yf/yr
+                                    'StorageStateofhealth':kpis['StorageStateOfHealth']['mean']
                 }
 
                 serializer = PlantReportSerializer(plant.plantreport,data=plantreportData)

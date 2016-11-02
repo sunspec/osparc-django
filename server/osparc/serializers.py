@@ -19,7 +19,7 @@ class PlantTypeSerializer(serializers.HyperlinkedModelSerializer):
 class PlantReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.PlantReport
-        fields = ("recordstatus","createtime","sampleinterval","firstmeasurementdate","lastmeasurementdate","yf","pr","soh")
+        fields = ("recordstatus","createtime","sampleinterval","firstmeasurementdate","lastmeasurementdate","monthlyyield","performanceratio","storagestateofhealth")
 
 class PlantSerializer(serializers.ModelSerializer):
     class Meta:
