@@ -183,18 +183,71 @@ class ReportRunList(generics.ListCreateAPIView):
 
     # def perform_create(self, serializer):
 
-        # rrDict = {'reportdefinition':reportDef,'status':2,'kpis':[]}
+    #     print serializer.validated_data
 
-        # rrser = ReportRunSerializer(data=rrDict)
-        # if rrser.is_valid():
-        #     rrser.save()
-        #     print rrser.data
-        #     print rrser.errors
-        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-        # else:
-        #     print rrser.errors
+    #     # rrDict = {'reportdefinition':reportDef,'status':2,'kpis':[]}
 
-        # return Response(rrser.errors, status=status.HTTP_400_BAD_REQUEST)
+    #     # rrser = ReportRunSerializer(data=rrDict)
+    #     # if rrser.is_valid():
+    #     #     rrser.save()
+    #     #     print rrser.data
+    #     #     print rrser.errors
+    #     #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #     # else:
+    #     #     print rrser.errors
+
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # def post(self, request, format=None):
+
+    #     print "request data:",request.data
+
+    #     definition_id = request.data['reportdefinition_id']
+
+    #     definition = ReportDefinition.objects.get(pk=definition_id)
+
+    #     print "report def id:",definition_id,"def:",definition
+
+    #     run = { 
+    #     "runsubmittime": None,
+    #     "runstarttime": None,
+    #     "runcompletetime": None,
+    #     "firstmeasurementdate": None,
+    #     "lastmeasurementdate": None,
+    #     "numberofmeasurements": None,
+    #     "numberofplants": None,
+    #     "totaldccapacity": None,
+    #     "totalstoragecapacity": None,
+    #     "reportdefinition":definition,
+    #     "kpis":[] }
+
+    #     print "run:",run
+
+    #     serializer = ReportRunSerializer(data=run)
+
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #     else:
+    #         print serializer.errors
+
+        # serializer = ReportRunSerializer(data=request.data)
+        # if serializer.is_valid():
+        #     defId = serializer.save()
+
+        #     print defId.id
+
+        #     # Create a reportRun; an async process will run it and create the results
+        #     rr = { "reportdefinition":defId.id,"status":2,"kpis":[] }
+        #     rrser = ReportRunSerializer(data=rr)
+        #     if rrser.is_valid():
+        #         rrser.save()
+        #         return Response(serializer.data, status=status.HTTP_201_CREATED)
+        #     else:
+        #         print rrser.errors
+
+        #     return Response(rrser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ReportRunDetail(generics.RetrieveUpdateDestroyAPIView):

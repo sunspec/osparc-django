@@ -39,10 +39,9 @@ class KPISerializer(serializers.ModelSerializer):
 
 class ReportDefinitionSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
-    runs = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     class Meta:
         model = models.ReportDefinition
-        fields = ("id","name","observationstartdate","observationenddate","plantfilterattribute","plantfilteroperation","plantfiltervalue","runs")
+        fields = ("id","name","observationstartdate","observationenddate","plantfilterattribute","plantfilteroperation","plantfiltervalue")
 
 class ReportRunSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
