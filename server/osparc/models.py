@@ -37,6 +37,19 @@ class UploadActivity(models.Model):
     # s3Key = models.CharField(max_length=254,blank=True,null=True)
     # account = models.ForeignKey(Account,blank=True,null=True)
 
+# Production Statistics pertaining to a single plant over a specific period (often its lifetime)
+# Used in the construction of instances of ReportRuns
+class PlantReport(models.Model):
+    recordstatus = models.IntegerField(default=9)           # RECORD_STATUS_RECALCULATE
+    createtime = models.DateTimeField(auto_now_add=True)    # time the report was created
+    sampleinterval = models.CharField(max_length=64,default='monthly')
+    firstmeasurementdate = models.DateField(blank=True,null=True)
+    lastmeasurementdate = models.DateField(blank=True,null=True)
+    yf = models.FloatField(blank=True,null=True)    # production yield kWh/kWdc
+    # yr = models.FloatField(blank=True,null=True)    # insolation yield kWh/m2/1000
+    pr = models.FloatField(blank=True,null=True)    # performance ratio yf/yr
+    soh = models.FloatField(blank=True,null=True)   # storage state of health
+
 class Plant(models.Model):
     uuid = models.CharField(max_length=254,blank=True,null=True)
     name = models.CharField(max_length=250, blank=True, null=True)
@@ -53,6 +66,7 @@ class Plant(models.Model):
     timezone = models.CharField(max_length=64,default='none')
     weathersource = models.CharField(max_length=32, blank=True, null=True) # CPR or local
     derate = models.FloatField(blank=True, null=True)
+    plantreport = models.ForeignKey(PlantReport,on_delete=models.CASCADE,blank=True, null=True)
     # from PVArray
     arraytype = models.CharField(max_length=32,blank=True, null=True)
     tilt = models.IntegerField(blank=True, null=True)
@@ -156,24 +170,11 @@ class ReportRun(models.Model):
     totalstoragecapacity = models.FloatField(blank=True,null=True)
 
 
-# # Production Statistics pertaining to a single plant over a specific period (often its lifetime)
-# # Used in the construction of instances of ReportRuns
-# class PlantReport(models.Model):
-#     plant = models.ForeignKey(Plant)
-#     recordstatus = models.IntegerField(default=1) # RECORD_STATUS_ACTIVE
-#     timestamp = models.DateTimeField()
-#     sampleinterval = models.IntegerField(blank=True,null=True)
-#     firstinterval = models.DateTimeField()
-#     lastinterval = models.DateTimeField()
-#     yfavg = models.FloatField(blank=True,null=True) # production yield kWh/kWdc
-#     yravg = models.FloatField(blank=True,null=True) # insolation yield kWh/m2/1000
-#     pravg = models.FloatField(blank=True,null=True) # performance ratio yf/yr
-
-
 class KPI(models.Model):
     name = models.CharField(max_length=254, blank=True, null=True)
     reportrun = models.ForeignKey(ReportRun,blank=True,null=True)
     plants = models.IntegerField(blank=True, null=True)
+    sampleinterval = models.CharField(max_length=64,default='monthly')
     firstday = models.DateField(blank=True, null=True)
     lastday = models.DateField(blank=True, null=True)
     mean = models.FloatField(blank=True, null=True)

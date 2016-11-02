@@ -16,14 +16,19 @@ class PlantTypeSerializer(serializers.HyperlinkedModelSerializer):
         model = models.PlantType
         fields = ("name", "description")
 
-class PlantSerializer(serializers.HyperlinkedModelSerializer):
+class PlantReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.PlantReport
+        fields = ("recordstatus","createtime","sampleinterval","firstmeasurementdate","lastmeasurementdate","yf","pr","soh")
+
+class PlantSerializer(serializers.ModelSerializer):
     class Meta:
         depth = 1
         model = models.Plant
         fields = ("id","uuid","name","activationdate","dcrating","postalcode","state",
             "description","county","city",
             "latitude","longitude","timezone","weathersource","derate","arraytype","tilt","azimuth",
-            "storageoriginalcapacity","storagecurrentcapacity","storagestateofcharge","accountid",
+            "storageoriginalcapacity","storagecurrentcapacity","storagestateofcharge","plantreport","accountid",
             "versioncreationtime","versionid","solaranywheresite","uploadactivity")
 
 class PlantTimeSeriesSerializer(serializers.ModelSerializer):
@@ -35,7 +40,7 @@ class PlantTimeSeriesSerializer(serializers.ModelSerializer):
 class KPISerializer(serializers.ModelSerializer):
     class Meta:
         model = models.KPI
-        fields = ("name","reportrun","plants","firstday","lastday","mean","median","minimum","maximum")
+        fields = ("name","reportrun","plants","sampleinterval","firstday","lastday","mean","median","minimum","maximum")
 
 class ReportDefinitionSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()

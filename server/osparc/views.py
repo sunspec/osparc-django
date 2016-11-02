@@ -13,6 +13,7 @@ from rest_framework import viewsets
 from rest_framework import status
 from rest_framework import response, schemas
 from rest_framework import generics
+from rest_framework import mixins
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -22,10 +23,10 @@ from rest_framework.mixins import ListModelMixin
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 
 from osparc.models import Account,UploadActivity,PlantType,Plant,PlantTimeSeries
-from osparc.models import ReportDefinition,ReportRun,UploadActivity
+from osparc.models import ReportDefinition,ReportRun,UploadActivity,PlantReport
 from osparc.models import KPI
 from osparc.serializers import AccountSerializer,UploadActivitySerializer,PlantTypeSerializer,PlantSerializer
-from osparc.serializers import PlantTimeSeriesSerializer,KPISerializer
+from osparc.serializers import PlantReportSerializer,PlantTimeSeriesSerializer,KPISerializer
 from osparc.serializers import ReportDefinitionSerializer,ReportRunSerializer
 from .mixins import KpiMixin
 
@@ -57,6 +58,9 @@ class PlantTimeSeriesViewSet(viewsets.ModelViewSet):
         # That is the case of importing from oSPARC v1, where the timeseries' plant
         # attribute is not imported because the db id of the plant is likely different
         # in oSPARC v2.
+        # When a new timeseries element is added, the plant's PlantReport must be 
+        # re-generated (since there is new data). We invalidate it here if it exists,
+        # and it is recalculated asynchronously.
 
         print instance.plant, instance.plantUUID
 
@@ -74,6 +78,9 @@ class PlantTimeSeriesViewSet(viewsets.ModelViewSet):
                 else:
                     print serializer.errors
 
+            # here, we have identified the plant
+
+            # (1) update the uploadactivity 
             try:
                 ua = UploadActivity.objects.get(id=plant.uploadactivity_id)
                 ua.mostrecenttimeseriesuploadtime = datetime.datetime.now()
@@ -81,6 +88,19 @@ class PlantTimeSeriesViewSet(viewsets.ModelViewSet):
                 ua.save()
             except:
                 print "ERROR updating UA"
+
+            # (2) invalidate the plantreport
+            try:
+                report = PlantReport.objects.get(pk=plant.plantreport)
+                report.recordstatus = 9     # invalid
+                newser = PlantReportSerializer(instance, data=report.__dict__)
+                if newser.is_valid():
+                    newser.save()
+                else:
+                    print "ERROR invalidating PlantReport: errors:",newser.errors
+            except:
+                print "ERROR invalidating PlantReport"
+
 
         except:
             print "Unable to locate plant for timeseries %s" % instance.timestamp
@@ -116,6 +136,9 @@ class PlantList(generics.ListCreateAPIView):
         instance = serializer.save()
 
         instance.uploadactivity = UploadActivity.objects.create()
+        instance.plantreport = PlantReport.objects.create()
+
+        print instance.plantreport
 
         if instance.uuid == None or instance.uuid == "":
             instance.uuid = str(uuid.uuid4());
@@ -126,9 +149,77 @@ class PlantList(generics.ListCreateAPIView):
         else:
             print "newser errors:",newser.errors
 
-class PlantDetail(generics.RetrieveUpdateDestroyAPIView):
+# class PlantDetail(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Plant.objects.all()
+#     serializer_class = PlantSerializer
+
+class PlantReportDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = PlantReport.objects.all()
+    serializer_class = PlantReportSerializer
+
+
+class PlantDetail(mixins.RetrieveModelMixin,
+                    mixins.UpdateModelMixin,
+                    mixins.DestroyModelMixin,
+                    generics.GenericAPIView):
     queryset = Plant.objects.all()
     serializer_class = PlantSerializer
+
+    def buildReport(self,plantreport,timeseriesrecords):
+        mixin = PlantReportMixin()
+        return mixin.updateReport(timeseriesrecords)
+
+    def get_object(self, pk):
+        try:
+            return Plant.objects.get(pk=pk)
+        except Plant.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        plant = self.get_object(pk)
+
+        if plant.plantreport.recordstatus == 9:
+            # must create plantreport
+
+            # TODO TBD XXX this is horrible - figure out how to apply a filter to PlantTimeSeries.all()
+            timeseriesrecords = PlantTimeSeries.objects.all()
+            myrecords = list()
+            for record in timeseriesrecords:
+                if record.plant.id == plant.id:
+                    myrecords.append(record)
+
+            if myrecords != None:
+                # there are timeseries records so we can go ahead
+                plants = [ plant ]
+                mixin = KpiMixin()
+                kpis = mixin.calculateKPIs(plants,myrecords)
+                plantreportData = {'recordstatus':1,
+                                    'createtime':datetime.datetime.now(),
+                                    'sampleinterval':'monthly',
+                                    'firstmeasurementdate':kpis['PerformanceRatio']['firstday'],
+                                    'lastmeasurementdate':kpis['PerformanceRatio']['lastday'],
+                                    'yf':kpis['MonthlyYield']['mean'], # production yield kWh/kWdc
+                                    'pr':kpis['PerformanceRatio']['mean'], # performance ratio yf/yr
+                                    'soh':kpis['StorageStateOfHealth']['mean']
+                }
+
+                serializer = PlantReportSerializer(plant.plantreport,data=plantreportData)
+                if serializer.is_valid():
+                    serializer.save()
+                else:
+                    print "ERROR saving plantreport:",serializer.errors
+
+        # ok the report was built so get and return the updated plant
+        plant = self.get_object(pk)
+        serializer = PlantSerializer(plant)
+        return Response(serializer.data)
+
+    # def put(self, request, *args, **kwargs):
+    #     return self.update(request, *args, **kwargs)
+
+    # def delete(self, request, *args, **kwargs):
+    #     return self.destroy(request, *args, **kwargs)
+
 
 # queries & reports
 class ReportDefinitionList(generics.ListCreateAPIView):
@@ -169,6 +260,7 @@ class ReportDefinitionList(generics.ListCreateAPIView):
 class ReportDefinitionDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = ReportDefinition.objects.all()
     serializer_class = ReportDefinitionSerializer
+
 
 class ReportRunList(generics.ListCreateAPIView):
     queryset = ReportRun.objects.all()
@@ -504,91 +596,21 @@ class AggregatesView(APIView):
 
 
 # KPIs
-class KpiTimeseriesElement:
-    def __init__(self,plantId,timestamp,numerator,denominator):
-        self.plantId = plantId
-        self.timestamp = timestamp
-        self.value = numerator/denominator
-
 class KPIsView(APIView):
 
     def create(self, validated_data):
         return KPI.objects.create(**validated_data)
 
-    def calculateKPIs(self):
-
-        mixin = KpiMixin()
-
-        # dcrating and StorageCapacity
-        plants = Plant.objects.all()
-
-        dcList = list()
-        storCapList = list()
-        storSOHList = list()
-        for plant in plants:
-            if plant.dcrating is not None:
-                dcList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.dcrating,1) )
-            if plant.storageoriginalcapacity is not None:
-                storCapList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storageoriginalcapacity,1) )
-                if plant.storagecurrentcapacity is not None:
-                    storSOHList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storagecurrentcapacity,plant.storageoriginalcapacity) )
-                else:
-                    storCapList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storageoriginalcapacity,1) )
-
-        # Fill in the plant-related KPIs
-        result = collections.defaultdict(dict)
-
-        # 1. DC Power Rating (rated DC power)
-        result['DCRating'] = KpiMixin.buildAndSaveKpi(mixin,dcList,'DCRating')
-
-        # 2. Storage Capacity
-        result['StorageCapacity'] = KpiMixin.buildAndSaveKpi(mixin,storCapList,'StorageCapacity')
-
-        # 3. Storage State of Health
-        result['StorageStateOfHealth'] = KpiMixin.buildAndSaveKpi(mixin,storSOHList,'StorageStateOfHealth')
-
-        #  Now the timeseries-related KPIs
-        timeseries = PlantTimeSeries.objects.all()
-
-        # First, get a list of each element that will contribute to each KPI
-        # We get a separate list per KPI because not all time series elements contain all measurements
-        ghiList = list()
-        whList = list()
-        yfList = list()
-        yrList = list()
-        for entry in timeseries:
-            if entry.GHI_DIFF is not None:
-                ghiList.append( KpiTimeseriesElement(entry.plant.id,entry.timestamp.date(),entry.GHI_DIFF,1) )
-            if entry.WH_DIFF is not None:
-                whList.append( KpiTimeseriesElement(entry.plant.id,entry.timestamp.date(),entry.WH_DIFF,1) )
-                yfList.append( KpiTimeseriesElement(entry.plant.id,entry.timestamp.date(),entry.WH_DIFF,entry.plant.dcrating) )
-            if entry.HPOA_DIFF is not None:
-                yrList.append( KpiTimeseriesElement(entry.plant.id,entry.timestamp.date(),entry.HPOA_DIFF,1000) )
-
-        # Now calculate the KPIs
-
-        # 1. GHI (daily insolation)
-        result['MonthlyInsolation'] = KpiMixin.buildAndSaveKpi(mixin,ghiList,'MonthlyInsolation')
-
-        # 2. WH (daily generated energy)
-        result['MonthlyGeneratedEnergy'] = KpiMixin.buildAndSaveKpi(mixin,whList,'MonthlyGeneratedEnergy')
-
-        # 3. YF (generated yield kWh/kWp)
-        result['MonthlyYield'] = KpiMixin.buildAndSaveKpi(mixin,yfList,'MonthlyYield')
-        
-        # 4. YR (hpoa yield kWh/kWp)
-        if len(yrList) > 0:
-            result['PerformanceRatio'] = KpiMixin.divide(mixin,result['MonthlyYield'],KpiMixin.buildKpi(mixin,yrList,''))
-            result['PerformanceRatio']['name'] = 'PerformanceRatio'
-            KpiMixin.saveKpi(mixin,result['PerformanceRatio'],'PerformanceRatio')
-
-        return result
-
     def get(self, request, format=None):
 
         print("calculating kpis starting %s" % (datetime.datetime.now()))
 
-        kpis = KPIsView.calculateKPIs(self)
+        plants = Plant.objects.all()
+        timeseries = PlantTimeSeries.objects.all()
+
+        mixin = KpiMixin()
+
+        kpis = mixin.calculateKPIs(self,plants,timeseries)
 
         print("calculating kpis finished %s" % (datetime.datetime.now()))
 
@@ -601,3 +623,5 @@ class KPIsView(APIView):
 def schema_view(request):
     generator = schemas.SchemaGenerator(title='oSPARC API')
     return response.Response(generator.get_schema(request=request))
+
+
