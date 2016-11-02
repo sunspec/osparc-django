@@ -140,23 +140,11 @@ class ReportDefinition(models.Model):
     def __str__(self):
         return self.name
 
-# Production Statistics pertaining to a single plant over a specific period (often its lifetime)
-# Used in the construction of instances of ReportRuns
-class PlantReport(models.Model):
-    plant = models.ForeignKey(Plant)
-    recordstatus = models.IntegerField(default=1) # RECORD_STATUS_ACTIVE
-    timestamp = models.DateTimeField()
-    sampleinterval = models.IntegerField(blank=True,null=True)
-    firstinterval = models.DateTimeField()
-    lastinterval = models.DateTimeField()
-    yfavg = models.FloatField(blank=True,null=True) # production yield kWh/kWdc
-    yravg = models.FloatField(blank=True,null=True) # insolation yield kWh/m2/1000
-    pravg = models.FloatField(blank=True,null=True) # performance ratio yf/yr
 
 # The results of a run of a query
 class ReportRun(models.Model):
     status = models.IntegerField(default=2) # 1=ready, 2=pending, 5=processing, 6=failed, 9=empty
-    reportdefinition = models.ForeignKey(ReportDefinition,related_name='runs')
+    reportdefinition = models.ForeignKey(ReportDefinition)
     runsubmittime = models.DateTimeField(auto_now_add=True) # time user ordered the report
     runstarttime = models.DateTimeField(blank=True,null=True)  # time report preparation actually began
     runcompletetime = models.DateTimeField(blank=True,null=True)  # time report preparation actually completed
@@ -166,6 +154,20 @@ class ReportRun(models.Model):
     numberofplants = models.IntegerField(blank=True,null=True)
     totaldccapacity = models.FloatField(blank=True,null=True)
     totalstoragecapacity = models.FloatField(blank=True,null=True)
+
+
+# # Production Statistics pertaining to a single plant over a specific period (often its lifetime)
+# # Used in the construction of instances of ReportRuns
+# class PlantReport(models.Model):
+#     plant = models.ForeignKey(Plant)
+#     recordstatus = models.IntegerField(default=1) # RECORD_STATUS_ACTIVE
+#     timestamp = models.DateTimeField()
+#     sampleinterval = models.IntegerField(blank=True,null=True)
+#     firstinterval = models.DateTimeField()
+#     lastinterval = models.DateTimeField()
+#     yfavg = models.FloatField(blank=True,null=True) # production yield kWh/kWdc
+#     yravg = models.FloatField(blank=True,null=True) # insolation yield kWh/m2/1000
+#     pravg = models.FloatField(blank=True,null=True) # performance ratio yf/yr
 
 
 class KPI(models.Model):
