@@ -82,6 +82,7 @@ class KPIs(object):
             kpi['median'] = round( KPIs.median(self,valueList),1 )
         else:
             kpi['median'] = 0
+        kpi['sampleinterval'] = 'monthly'
 
         return kpi
 
@@ -94,6 +95,7 @@ class KPIs(object):
         kpi['maximum'] = round(dict1['maximum'] / dict2['maximum'],2)
         kpi['mean'] = round(dict1['mean'] / dict2['mean'],2)
         kpi['median'] = round(dict1['median'] / dict2['median'],2)
+        kpi['sampleinterval'] = dict1['sampleinterval']
         return kpi
 
     def saveKpi( self,kpi,name ):

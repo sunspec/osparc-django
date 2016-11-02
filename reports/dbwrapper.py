@@ -99,12 +99,14 @@ where id=%d" % \
 		try:
 			# there must be only one (reportrun,kpi) tuple per reportrun and kpi (if one doesn't exist, query has no effect)
 			query1 = "delete from osparc_kpi where name='%s' and reportrun_id=%d" % (kpi["name"],runId)
-			query = "insert into osparc_kpi (name,plants,firstday,lastday,mean,median,minimum,maximum,reportrun_id) values \
-				('%s',%d,'%s','%s',%d,%d,%d,%d,%d)" % \
-				(kpi["name"],kpi["plants"],kpi["firstday"],kpi["lastday"],kpi["mean"],kpi["median"],kpi["minimum"],kpi["maximum"],runId)
+			query = "insert into osparc_kpi (name,plants,firstday,lastday,mean,median,minimum,maximum,sampleinterval,reportrun_id) values \
+				('%s',%d,'%s','%s',%d,%d,%d,%d,'%s',%d)" % \
+				(kpi["name"],kpi["plants"],kpi["firstday"],kpi["lastday"],kpi["mean"],kpi["median"],kpi["minimum"],kpi["maximum"],kpi["sampleinterval"],runId)
 			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
 			cursor = db.cursor()
+			print query1
 			cursor.execute(query1)
+			print query
 			cursor.execute(query)
 			db.commit()
 			db.close()
