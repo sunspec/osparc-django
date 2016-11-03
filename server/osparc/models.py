@@ -123,7 +123,7 @@ class PlantTimeSeries(models.Model):
     # from PVArrayTimeSeries
     HPOA_DIFF = models.FloatField(blank=True,null=True)
     # plantTimeSeries-meta-meta data
-    plant = models.ForeignKey(Plant,blank=True,null=True)
+    plant = models.ForeignKey(Plant,on_delete=models.CASCADE,blank=True,null=True)
     recordstatus = models.IntegerField(default=1) # RECORD_STATUS_ACTIVE
     plantUUID = models.CharField(max_length=254,blank=True,null=True)
 
