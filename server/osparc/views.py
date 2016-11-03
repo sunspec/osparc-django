@@ -203,14 +203,8 @@ class PlantDetail(mixins.RetrieveModelMixin,
         else:
             print "ERROR saving plantreport:",serializer.errors
 
-    def get_object(self, pk):
-        try:
-            return Plant.objects.get(pk=pk)
-        except Plant.DoesNotExist:
-            raise Http404
-
     def get(self, request, pk, format=None):
-        plant = self.get_object(pk)
+        plant = Plant.objects.get(pk=pk)
 
         if plant.plantreport.recordstatus == 9:
             # must create plantreport
@@ -218,7 +212,7 @@ class PlantDetail(mixins.RetrieveModelMixin,
             self.createAndSaveReport(plant)
 
             # the report was built & saved so we have to get the updated plant
-            plant = self.get_object(pk)
+            plant = Plant.objects.get(pk=pk)
 
         serializer = PlantSerializer(plant)
         return Response(serializer.data)
