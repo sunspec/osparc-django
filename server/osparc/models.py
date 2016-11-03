@@ -42,7 +42,7 @@ class UploadActivity(models.Model):
 class PlantReport(models.Model):
     recordstatus = models.IntegerField(default=9)           # RECORD_STATUS_RECALCULATE
     createtime = models.DateTimeField(auto_now_add=True)    # time the report was created
-    sampleinterval = models.CharField(max_length=64,default='monthly')
+    sampleinterval = models.CharField(max_length=64,blank=True,null=True)
     firstmeasurementdate = models.DateField(blank=True,null=True)
     lastmeasurementdate = models.DateField(blank=True,null=True)
     monthlyyield = models.FloatField(blank=True,null=True)    # production yield kWh/kWdc

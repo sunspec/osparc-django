@@ -169,9 +169,7 @@ class PlantDetail(mixins.RetrieveModelMixin,
             if record.plant.id == plant.id:
                 myrecords.append(record)
 
-        if myrecords != None:
-
-            print "calculating kpis"
+        if myrecords != None and len(myrecords) > 0:
 
             # there are timeseries records so we can go ahead
             plants = [ plant ]
@@ -187,8 +185,6 @@ class PlantDetail(mixins.RetrieveModelMixin,
                                 'StorageStateofhealth':kpis['StorageStateOfHealth']['mean']
             }
         else:
-
-            print "no timeseries"
 
             plantreportData = { 'recordstatus':1,
                                 'createtime':datetime.datetime.now(),
@@ -215,8 +211,6 @@ class PlantDetail(mixins.RetrieveModelMixin,
 
     def get(self, request, pk, format=None):
         plant = self.get_object(pk)
-
-        print "plant:",plant.name,plant.plantreport.recordstatus
 
         if plant.plantreport.recordstatus == 9:
             # must create plantreport
