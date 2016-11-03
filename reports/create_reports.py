@@ -43,6 +43,11 @@ try:
 			op = defi[5]
 			value = defi[6]
 			plants = DbWrapper.getPlants(dbwrapper,attr,op,value)
+			totaldccapacity = 0;
+
+			for plant in plants:
+				if plant.dcrating is not None:
+					totaldccapacity += plant.dcrating
 
 			# use the time filter from the reportrun, and the set of plants 
 			# retrieved above, to get the set of timeseries elements to be used
@@ -68,17 +73,18 @@ try:
 				DbWrapper.saveKpi(dbwrapper,runid,kpis['MonthlyYield'])
 				DbWrapper.saveKpi(dbwrapper,runid,kpis['PerformanceRatio'])
 
-				# update the reportrun table with the summary of the run...
-				summary = collections.defaultdict(int)
-				summary["numberofplants"] = len(plants)
-				summary["numberofmeasurements"] = len(timeseries)
-				summary["firstmeasurementdate"] = defi[2]	# note: get this from timeseries instead!
-				summary["lastmeasurementdate"] = defi[3]	# ditto
-				DbWrapper.updateRunSummary(dbwrapper,runid,summary)
+			# update the reportrun table with the summary of the run...
+			summary = collections.defaultdict(int)
+			summary["numberofplants"] = len(plants)
+			summary['totaldccapacity'] = totaldccapacity
+			summary["numberofmeasurements"] = len(timeseries)
+			summary["firstmeasurementdate"] = defi[2]	# note: get this from timeseries instead!
+			summary["lastmeasurementdate"] = defi[3]	# ditto
+			DbWrapper.updateRunSummary(dbwrapper,runid,summary)
 
-				# ...and the status, indicating that it's ready to be viewed
-				now = datetime.datetime.now()
-				DbWrapper.updateRunStatus(dbwrapper,runid,now,1)
+			# ...and the status, indicating that it's ready to be viewed
+			now = datetime.datetime.now()
+			DbWrapper.updateRunStatus(dbwrapper,runid,now,1)
 
 except:
 	print "ERROR processing runs"

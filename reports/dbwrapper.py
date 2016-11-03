@@ -3,6 +3,7 @@
 # manage the database tables
 
 import MySQLdb
+import models
 
 
 class DbWrapper(object):
@@ -37,13 +38,12 @@ class DbWrapper(object):
 			print "ERROR updating runstatus"
 
 	def updateRunSummary(self,runid,summary):
-		print "updating run",runid,summary
 		try:
 			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
 			cursor = db.cursor()
-			query = "update osparc_reportrun set numberofplants=%d,numberofmeasurements=%d,firstmeasurementdate='%s',lastmeasurementdate='%s' \
+			query = "update osparc_reportrun set numberofplants=%d,totaldccapacity=%d,numberofmeasurements=%d,firstmeasurementdate='%s',lastmeasurementdate='%s' \
 where id=%d" % \
-(summary["numberofplants"],summary["numberofmeasurements"],summary["firstmeasurementdate"],summary["lastmeasurementdate"],runid)
+(summary["numberofplants"],summary["totaldccapacity"],summary["numberofmeasurements"],summary["firstmeasurementdate"],summary["lastmeasurementdate"],runid)
 			cursor.execute(query)
 			db.commit()
 			db.close()
@@ -72,8 +72,13 @@ where id=%d" % \
 			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
 			cursor = db.cursor()
 			cursor.execute(query)
-			plants = cursor.fetchall()
+			plantArrays = cursor.fetchall()
 			db.close
+			# look, daddy's own little ORM!
+			plants = list()
+			for pArray in plantArrays:
+				plant = models.Plant(pArray[0],pArray[1],pArray[2],pArray[3],pArray[4])
+				plants.append(plant)
 			return plants
 		except:
 			print "ERROR getting plants"
@@ -82,14 +87,21 @@ where id=%d" % \
 		try:
 			plantIds = list()
 			for plant in plants:
-				plantIds.append(str(plant[0]))
+				plantIds.append(str(plant.id))
 			plantIdsStr = ','.join(plantIds)
 			query = "select * from osparc_planttimeseries where plant_id in (%s) and timestamp between '%s' and '%s'" % (plantIdsStr,startTime,endTime)
 			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
 			cursor = db.cursor()
 			cursor.execute(query)
-			results = cursor.fetchall()
+			resultArrays = cursor.fetchall()
 			db.close
+			# look, daddy's own little ORM!
+			results = list()
+			for eArray in resultArrays:
+				entry = models.PlantTimeSeries(eArray[0],eArray[1],eArray[2],eArray[3],eArray[4],eArray[5],eArray[6],eArray[9])
+                # (eArray[7] is plantUUID, eArray[8] is recordStatus)
+                # print entry.timestamp,entry.plant
+				results.append(entry)
 			return results
 		except:
 			print "ERROR getting timeseries"
@@ -104,9 +116,7 @@ where id=%d" % \
 				(kpi["name"],kpi["plants"],kpi["firstday"],kpi["lastday"],kpi["mean"],kpi["median"],kpi["minimum"],kpi["maximum"],kpi["sampleinterval"],runId)
 			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
 			cursor = db.cursor()
-			print query1
 			cursor.execute(query1)
-			print query
 			cursor.execute(query)
 			db.commit()
 			db.close()

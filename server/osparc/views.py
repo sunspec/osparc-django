@@ -134,8 +134,6 @@ class PlantList(generics.ListCreateAPIView):
         instance.uploadactivity = UploadActivity.objects.create()
         instance.plantreport = PlantReport.objects.create()
 
-        print instance.plantreport
-
         if instance.uuid == None or instance.uuid == "":
             instance.uuid = str(uuid.uuid4());
             

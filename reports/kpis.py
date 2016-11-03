@@ -1,31 +1,7 @@
 import datetime
 import sys
 import collections
-
-class Plant:
-    def __init__(self,id,actdate,dcrating,storageoriginalcapacity,storagecurrentcapacity):
-        self.id = id
-        self.activationdate = actdate
-        self.dcrating = dcrating
-        self.storageoriginalcapacity = storageoriginalcapacity
-        self.storagecurrentcapacity = storagecurrentcapacity
-
-class PlantTimeSeries:
-    def __init__(self,id,timestamp,sampleinterval,WH_DIFF,GHI_DIFF,TMPAMB_AVG,HPOA_DIFF,plant):
-        self.timestamp = timestamp
-        self.sampleinterval = sampleinterval
-        self.WH_DIFF = WH_DIFF
-        self.GHI_DIFF = GHI_DIFF
-        self.TMPAMB_AVG = TMPAMB_AVG
-        self.HPOA_DIFF = HPOA_DIFF
-        self.plant = plant
-
-class KpiTimeseriesElement:
-    def __init__(self,plantId,timestamp,numerator,denominator):
-        # print "KpiTimeseriesElement init: ",plantId,timestamp,numerator,denominator
-        self.plantId = plantId
-        self.timestamp = timestamp
-        self.value = numerator/denominator
+import models
 
 class KPIs(object):
 
@@ -118,8 +94,8 @@ class KPIs(object):
 
     def findPlantsDcrating(self,plants,id):
         for plant in plants:
-            if plant[0] == id:
-                return plant[2]
+            if plant.id == id:
+                return plant.dcrating
         return None
 
     def calculateKPIs( self, plants, timeseries ):
@@ -129,21 +105,21 @@ class KPIs(object):
         storSOHList = list()
 
         try:
-            for pArray in plants:
-                # look, daddy's own little ORM!
-                plant = Plant(pArray[0],pArray[1],pArray[2],pArray[3],pArray[4])
+            for plant in plants:
+                # # look, daddy's own little ORM!
+                # plant = Plant(pArray[0],pArray[1],pArray[2],pArray[3],pArray[4])
 
                 if plant.dcrating is not None:
-                    dcList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.dcrating,1) )
+                    dcList.append( models.KpiTimeseriesElement(plant.id,plant.activationdate,plant.dcrating,1) )
                     # dcratingArray[plant.id] = plant.dcrating
                 if plant.storageoriginalcapacity is not None:
-                    storCapList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storageoriginalcapacity,1) )
+                    storCapList.append( models.KpiTimeseriesElement(plant.id,plant.activationdate,plant.storageoriginalcapacity,1) )
                     if plant.storagecurrentcapacity is not None:
-                        storSOHList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storagecurrentcapacity,plant.storageoriginalcapacity) )
+                        storSOHList.append( models.KpiTimeseriesElement(plant.id,plant.activationdate,plant.storagecurrentcapacity,plant.storageoriginalcapacity) )
                     else:
-                        storCapList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storageoriginalcapacity,1) )
+                        storCapList.append( models.KpiTimeseriesElement(plant.id,plant.activationdate,plant.storageoriginalcapacity,1) )
         except:
-            print "FAILED reading plant dcrating or storagecapacity"
+            print "ERROR reading plant dcrating or storagecapacity"
             return None
 
 
@@ -169,21 +145,18 @@ class KPIs(object):
         yrList = list()
 
         try:
-            for eArray in timeseries:
-
-                entry = PlantTimeSeries(eArray[0],eArray[1],eArray[2],eArray[3],eArray[4],eArray[5],eArray[6],eArray[9])
-                # (eArray[7] is plantUUID, eArray[8] is recordStatus)
+            for entry in timeseries:
 
                 if entry.GHI_DIFF is not None:
-                    ghiList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.GHI_DIFF,1) )
+                    ghiList.append( models.KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.GHI_DIFF,1) )
                 if entry.WH_DIFF is not None:
-                    whList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.WH_DIFF,1) )
+                    whList.append( models.KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.WH_DIFF,1) )
                     dcrating = KPIs.findPlantsDcrating(self,plants,entry.plant)
-                    yfList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.WH_DIFF,dcrating) )
+                    yfList.append( models.KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.WH_DIFF,dcrating) )
                 if entry.HPOA_DIFF is not None:
-                    yrList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.HPOA_DIFF,1000) )
+                    yrList.append( models.KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.HPOA_DIFF,1000) )
         except:
-            print "FAILED reading timeseries"
+            print "ERROR reading timeseries"
             return None
 
         # Now calculate the KPIs
