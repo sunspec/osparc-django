@@ -161,9 +161,51 @@ class PlantDetail(mixins.RetrieveModelMixin,
     queryset = Plant.objects.all()
     serializer_class = PlantSerializer
 
-    def buildReport(self,plantreport,timeseriesrecords):
-        mixin = PlantReportMixin()
-        return mixin.updateReport(timeseriesrecords)
+    def createAndSaveReport(self,plant):
+        # TODO TBD XXX this is horrible - figure out how to apply a filter to PlantTimeSeries.all()
+        timeseriesrecords = PlantTimeSeries.objects.all()
+        myrecords = list()
+        for record in timeseriesrecords:
+            if record.plant.id == plant.id:
+                myrecords.append(record)
+
+        if myrecords != None:
+
+            print "calculating kpis"
+
+            # there are timeseries records so we can go ahead
+            plants = [ plant ]
+            mixin = KpiMixin()
+            kpis = mixin.calculateKPIs(plants,myrecords)
+            plantreportData = { 'recordstatus':1,
+                                'createtime':datetime.datetime.now(),
+                                'sampleinterval':'monthly',
+                                'firstmeasurementdate':kpis['PerformanceRatio']['firstday'],
+                                'lastmeasurementdate':kpis['PerformanceRatio']['lastday'],
+                                'monthlyyield':kpis['MonthlyYield']['mean'], # production yield kWh/kWdc
+                                'performanceratio':kpis['PerformanceRatio']['mean'], # performance ratio yf/yr
+                                'StorageStateofhealth':kpis['StorageStateOfHealth']['mean']
+            }
+        else:
+
+            print "no timeseries"
+
+            plantreportData = { 'recordstatus':1,
+                                'createtime':datetime.datetime.now(),
+                                'sampleinterval':None,
+                                'firstmeasurementdate':None,
+                                'lastmeasurementdate':None,
+                                'monthlyyield':None,
+                                'performanceratio':None,
+                                'StorageStateofhealth':None
+            }
+
+        # we save the report regardless of whether there were timeseries elements - the report is complete
+        serializer = PlantReportSerializer(plant.plantreport,data=plantreportData)
+        if serializer.is_valid():
+            serializer.save()
+        else:
+            print "ERROR saving plantreport:",serializer.errors
 
     def get_object(self, pk):
         try:
@@ -174,39 +216,16 @@ class PlantDetail(mixins.RetrieveModelMixin,
     def get(self, request, pk, format=None):
         plant = self.get_object(pk)
 
+        print "plant:",plant.name,plant.plantreport.recordstatus
+
         if plant.plantreport.recordstatus == 9:
             # must create plantreport
 
-            # TODO TBD XXX this is horrible - figure out how to apply a filter to PlantTimeSeries.all()
-            timeseriesrecords = PlantTimeSeries.objects.all()
-            myrecords = list()
-            for record in timeseriesrecords:
-                if record.plant.id == plant.id:
-                    myrecords.append(record)
+            self.createAndSaveReport(plant)
 
-            if myrecords != None:
-                # there are timeseries records so we can go ahead
-                plants = [ plant ]
-                mixin = KpiMixin()
-                kpis = mixin.calculateKPIs(plants,myrecords)
-                plantreportData = {'recordstatus':1,
-                                    'createtime':datetime.datetime.now(),
-                                    'sampleinterval':'monthly',
-                                    'firstmeasurementdate':kpis['PerformanceRatio']['firstday'],
-                                    'lastmeasurementdate':kpis['PerformanceRatio']['lastday'],
-                                    'monthlyyield':kpis['MonthlyYield']['mean'], # production yield kWh/kWdc
-                                    'performanceratio':kpis['PerformanceRatio']['mean'], # performance ratio yf/yr
-                                    'StorageStateofhealth':kpis['StorageStateOfHealth']['mean']
-                }
+            # the report was built & saved so we have to get the updated plant
+            plant = self.get_object(pk)
 
-                serializer = PlantReportSerializer(plant.plantreport,data=plantreportData)
-                if serializer.is_valid():
-                    serializer.save()
-                else:
-                    print "ERROR saving plantreport:",serializer.errors
-
-        # ok the report was built so get and return the updated plant
-        plant = self.get_object(pk)
         serializer = PlantSerializer(plant)
         return Response(serializer.data)
 
