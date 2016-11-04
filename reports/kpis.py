@@ -48,14 +48,14 @@ class KPIs(object):
         kpi['plants'] = numberOfPlants
         kpi['firstday'] = firstEntry
         kpi['lastday'] = lastEntry
-        kpi['minimum'] = round( minValue,1 )
-        kpi['maximum'] = round( maxValue,1 )
+        kpi['minimum'] = round( minValue,3 )
+        kpi['maximum'] = round( maxValue,3 )
         if len(entryList) > 0:
-            kpi['mean'] = round(total/len(entryList),1)
+            kpi['mean'] = round(total/len(entryList),3)
         else:
             kpi['mean'] = 0
         if len(valueList) > 0:
-            kpi['median'] = round( KPIs.median(self,valueList),1 )
+            kpi['median'] = round( KPIs.median(self,valueList),3 )
         else:
             kpi['median'] = 0
         kpi['sampleinterval'] = 'monthly'
@@ -67,10 +67,10 @@ class KPIs(object):
         kpi['plants'] = min( dict1['plants'],dict2['plants'] )
         kpi['firstday'] = max( dict1['firstday'],dict2['firstday'] )
         kpi['lastday'] = min( dict1['lastday'],dict2['lastday'] )
-        kpi['minimum'] = round(dict1['minimum'] / dict2['minimum'],2)
-        kpi['maximum'] = round(dict1['maximum'] / dict2['maximum'],2)
-        kpi['mean'] = round(dict1['mean'] / dict2['mean'],2)
-        kpi['median'] = round(dict1['median'] / dict2['median'],2)
+        kpi['minimum'] = round(dict1['minimum'] / dict2['minimum'],3)
+        kpi['maximum'] = round(dict1['maximum'] / dict2['maximum'],3)
+        kpi['mean'] = round(dict1['mean'] / dict2['mean'],3)
+        kpi['median'] = round(dict1['median'] / dict2['median'],3)
         kpi['sampleinterval'] = dict1['sampleinterval']
         return kpi
 
@@ -106,9 +106,6 @@ class KPIs(object):
 
         try:
             for plant in plants:
-                # # look, daddy's own little ORM!
-                # plant = Plant(pArray[0],pArray[1],pArray[2],pArray[3],pArray[4])
-
                 if plant.dcrating is not None:
                     dcList.append( models.KpiTimeseriesElement(plant.id,plant.activationdate,plant.dcrating,1) )
                     # dcratingArray[plant.id] = plant.dcrating
@@ -116,8 +113,6 @@ class KPIs(object):
                     storCapList.append( models.KpiTimeseriesElement(plant.id,plant.activationdate,plant.storageoriginalcapacity,1) )
                     if plant.storagecurrentcapacity is not None:
                         storSOHList.append( models.KpiTimeseriesElement(plant.id,plant.activationdate,plant.storagecurrentcapacity,plant.storageoriginalcapacity) )
-                    else:
-                        storCapList.append( models.KpiTimeseriesElement(plant.id,plant.activationdate,plant.storageoriginalcapacity,1) )
         except:
             print "ERROR reading plant dcrating or storagecapacity"
             return None

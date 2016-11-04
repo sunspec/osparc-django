@@ -44,10 +44,13 @@ try:
 			value = defi[6]
 			plants = DbWrapper.getPlants(dbwrapper,attr,op,value)
 			totaldccapacity = 0;
+			totalstoragecapacity = 0;
 
 			for plant in plants:
 				if plant.dcrating is not None:
 					totaldccapacity += plant.dcrating
+				if plant.storageoriginalcapacity is not None:
+					totalstoragecapacity += plant.storageoriginalcapacity
 
 			# use the time filter from the reportrun, and the set of plants 
 			# retrieved above, to get the set of timeseries elements to be used
@@ -80,6 +83,7 @@ try:
 			summary["numberofmeasurements"] = len(timeseries)
 			summary["firstmeasurementdate"] = defi[2]	# note: get this from timeseries instead!
 			summary["lastmeasurementdate"] = defi[3]	# ditto
+			summary['totalstoragecapacity'] = totalstoragecapacity
 			DbWrapper.updateRunSummary(dbwrapper,runid,summary)
 
 			# ...and the status, indicating that it's ready to be viewed

@@ -611,7 +611,7 @@ class KPIsView(APIView):
 
         mixin = KpiMixin()
 
-        kpis = mixin.calculateKPIs(self,plants,timeseries)
+        kpis = mixin.calculateKPIs(plants,timeseries)
 
         print("calculating kpis finished %s" % (datetime.datetime.now()))
 

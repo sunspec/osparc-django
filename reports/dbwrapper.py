@@ -41,9 +41,9 @@ class DbWrapper(object):
 		try:
 			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
 			cursor = db.cursor()
-			query = "update osparc_reportrun set numberofplants=%d,totaldccapacity=%d,numberofmeasurements=%d,firstmeasurementdate='%s',lastmeasurementdate='%s' \
+			query = "update osparc_reportrun set numberofplants=%d,totaldccapacity=%d,totalstoragecapacity=%d,numberofmeasurements=%d,firstmeasurementdate='%s',lastmeasurementdate='%s' \
 where id=%d" % \
-(summary["numberofplants"],summary["totaldccapacity"],summary["numberofmeasurements"],summary["firstmeasurementdate"],summary["lastmeasurementdate"],runid)
+(summary["numberofplants"],summary["totaldccapacity"],summary["totalstoragecapacity"],summary["numberofmeasurements"],summary["firstmeasurementdate"],summary["lastmeasurementdate"],runid)
 			cursor.execute(query)
 			db.commit()
 			db.close()

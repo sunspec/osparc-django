@@ -56,14 +56,14 @@ class KpiMixin(object):
         kpi['plants'] = numberOfPlants
         kpi['firstday'] = firstEntry
         kpi['lastday'] = lastEntry
-        kpi['minimum'] = round( minValue,1 )
-        kpi['maximum'] = round( maxValue,1 )
+        kpi['minimum'] = round( minValue,3 )
+        kpi['maximum'] = round( maxValue,3 )
         if len(entryList) > 0:
-            kpi['mean'] = round(total/len(entryList),1)
+            kpi['mean'] = round(total/len(entryList),3)
         else:
             kpi['mean'] = 0
         if len(valueList) > 0:
-            kpi['median'] = round( KpiMixin.median(self,valueList),1 )
+            kpi['median'] = round( KpiMixin.median(self,valueList),3 )
         else:
             kpi['median'] = 0
 
@@ -74,10 +74,10 @@ class KpiMixin(object):
         kpi['plants'] = min( dict1['plants'],dict2['plants'] )
         kpi['firstday'] = max( dict1['firstday'],dict2['firstday'] )
         kpi['lastday'] = min( dict1['lastday'],dict2['lastday'] )
-        kpi['minimum'] = round(dict1['minimum'] / dict2['minimum'],2)
-        kpi['maximum'] = round(dict1['maximum'] / dict2['maximum'],2)
-        kpi['mean'] = round(dict1['mean'] / dict2['mean'],2)
-        kpi['median'] = round(dict1['median'] / dict2['median'],2)
+        kpi['minimum'] = round(dict1['minimum'] / dict2['minimum'],3)
+        kpi['maximum'] = round(dict1['maximum'] / dict2['maximum'],3)
+        kpi['mean'] = round(dict1['mean'] / dict2['mean'],3)
+        kpi['median'] = round(dict1['median'] / dict2['median'],3)
         return kpi
 
     def saveKpi( self,kpi,name ):
