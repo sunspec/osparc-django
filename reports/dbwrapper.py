@@ -5,6 +5,11 @@
 import MySQLdb
 import models
 
+# XXX TBD TODO Heinosity Alert:
+# This, i.e. the script that runs reports, uses models that are very similar, but different,
+# from the models used in the django web services.
+# They should be combined; meanwhile, tread carefully!
+
 
 class DbWrapper(object):
 
