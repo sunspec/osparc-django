@@ -28,71 +28,78 @@ try:
 		status = run[1]
 		if status == 2:		# pending
 
-			# let the system know we're working on this run
-			runid = run[0]
-			now = datetime.datetime.now()
-			DbWrapper.updateRunStatus(dbwrapper,runid,now,5)
+			try:
+				runid = run[0]
+				now = datetime.datetime.now()
 
-			# get the definition, which contans the plant filters
-			defId = run[11]
-			defi = DbWrapper.readDef(dbwrapper,defId)
+				print("starting report %d at %s" % (runid,now))
 
-			# use the plant filter from definition to get the set of plants
-			# participating in the report
-			attr = defi[4]
-			op = defi[5]
-			value = defi[6]
-			plants = DbWrapper.getPlants(dbwrapper,attr,op,value)
-			totaldccapacity = 0;
-			totalstoragecapacity = 0;
+				# let the system know we're working on this run
+				DbWrapper.updateRunStatus(dbwrapper,runid,now,5)
 
-			for plant in plants:
-				if plant.dcrating is not None:
-					totaldccapacity += plant.dcrating
-				if plant.storageoriginalcapacity is not None:
-					totalstoragecapacity += plant.storageoriginalcapacity
+				# get the definition, which contans the plant filters
+				defId = run[11]
+				defi = DbWrapper.readDef(dbwrapper,defId)
 
-			# use the time filter from the reportrun, and the set of plants 
-			# retrieved above, to get the set of timeseries elements to be used
-			# to calculate the kpis for the report
-			startTime = datetime.datetime.combine(defi[2],datetime.time.min)
-			endTime = datetime.datetime.combine(defi[3],datetime.time.max)
-			timeseries = DbWrapper.getTimeSeries(dbwrapper,plants,startTime,endTime)
+				# use the plant filter from definition to get the set of plants
+				# participating in the report
+				attr = defi[4]
+				op = defi[5]
+				value = defi[6]
+				plants = DbWrapper.getPlants(dbwrapper,attr,op,value)
+				totaldccapacity = 0;
+				totalstoragecapacity = 0;
 
-			print "creating report with %d plants, %d timeseries elements" % (len(plants),len(timeseries))
+				for plant in plants:
+					if plant.dcrating is not None:
+						totaldccapacity += plant.dcrating
+					if plant.storageoriginalcapacity is not None:
+						totalstoragecapacity += plant.storageoriginalcapacity
 
-			# The results are saved as a summary in the reportrun table, and a set of
-			# kpis, in the kpi table. Kpi table entries have a foreign key to the reportrun table
+				# use the time filter from the reportrun, and the set of plants 
+				# retrieved above, to get the set of timeseries elements to be used
+				# to calculate the kpis for the report
+				startTime = datetime.datetime.combine(defi[2],datetime.time.min)
+				endTime = datetime.datetime.combine(defi[3],datetime.time.max)
+				timeseries = DbWrapper.getTimeSeries(dbwrapper,plants,startTime,endTime)
 
-			# calculate and save the KPIs
-			kpiObj = KPIs()
-			kpis = KPIs.calculateKPIs(kpiObj,plants,timeseries)
+				print "creating report with %d plants, %d timeseries elements" % (len(plants),len(timeseries))
 
-			if kpis is not None:
+				# The results are saved as a summary in the reportrun table, and a set of
+				# kpis, in the kpi table. Kpi table entries have a foreign key to the reportrun table
 
-				DbWrapper.saveKpi(dbwrapper,runid,kpis['DCRating'])
-				DbWrapper.saveKpi(dbwrapper,runid,kpis['MonthlyInsolation'])
-				DbWrapper.saveKpi(dbwrapper,runid,kpis['MonthlyGeneratedEnergy'])
-				DbWrapper.saveKpi(dbwrapper,runid,kpis['MonthlyYield'])
-				DbWrapper.saveKpi(dbwrapper,runid,kpis['PerformanceRatio'])
+				# calculate and save the KPIs
+				kpiObj = KPIs()
+				plantKpis = KPIs.calculatePlantKPIs(kpiObj,plants)
+				if plantKpis != None:
+					DbWrapper.saveKpi(dbwrapper,runid,plantKpis['DCRating'])
+					DbWrapper.saveKpi(dbwrapper,runid,plantKpis['StorageCapacity'])
+					DbWrapper.saveKpi(dbwrapper,runid,plantKpis['StorageStateOfHealth'])
+				timeseriesKpis = kpiObj.calculateTimeseriesKPIs(plants,timeseries)
+				if timeseriesKpis != None:
+					DbWrapper.saveKpi(dbwrapper,runid,timeseriesKpis['MonthlyInsolation'])
+					DbWrapper.saveKpi(dbwrapper,runid,timeseriesKpis['MonthlyGeneratedEnergy'])
+					DbWrapper.saveKpi(dbwrapper,runid,timeseriesKpis['MonthlyYield'])
+					DbWrapper.saveKpi(dbwrapper,runid,timeseriesKpis['PerformanceRatio'])
 
-			# update the reportrun table with the summary of the run...
-			summary = collections.defaultdict(int)
-			summary["numberofplants"] = len(plants)
-			summary['totaldccapacity'] = totaldccapacity
-			summary["numberofmeasurements"] = len(timeseries)
-			summary["firstmeasurementdate"] = defi[2]	# note: get this from timeseries instead!
-			summary["lastmeasurementdate"] = defi[3]	# ditto
-			summary['totalstoragecapacity'] = totalstoragecapacity
-			DbWrapper.updateRunSummary(dbwrapper,runid,summary)
+				# update the reportrun table with the summary of the run...
+				summary = collections.defaultdict(int)
+				summary["numberofplants"] = len(plants)
+				summary['totaldccapacity'] = totaldccapacity
+				summary["numberofmeasurements"] = len(timeseries)
+				summary["firstmeasurementdate"] = defi[2]	# note: get this from timeseries instead!
+				summary["lastmeasurementdate"] = defi[3]	# ditto
+				summary['totalstoragecapacity'] = totalstoragecapacity
+				DbWrapper.updateRunSummary(dbwrapper,runid,summary)
 
-			# ...and the status, indicating that it's ready to be viewed
-			now = datetime.datetime.now()
-			DbWrapper.updateRunStatus(dbwrapper,runid,now,1)
+				# ...and the status, indicating that it's ready to be viewed
+				now = datetime.datetime.now()
+				DbWrapper.updateRunStatus(dbwrapper,runid,now,1)
+
+				print("finished report %d at %s" % (runid,datetime.datetime.now()))
+			except:
+				print "ERROR processing run",runid
+
 
 except:
 	print "ERROR processing runs"
-
- 
-
-

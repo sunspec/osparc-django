@@ -8,8 +8,6 @@ import models
 
 class DbWrapper(object):
 
-	readPlantreportSql = "select * from osparc_plantreport"
-
 	def readRun(self):
 		try:
 			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
@@ -112,7 +110,7 @@ where id=%d" % \
 			# there must be only one (reportrun,kpi) tuple per reportrun and kpi (if one doesn't exist, query has no effect)
 			query1 = "delete from osparc_kpi where name='%s' and reportrun_id=%d" % (kpi["name"],runId)
 			query = "insert into osparc_kpi (name,plants,firstday,lastday,mean,median,minimum,maximum,sampleinterval,reportrun_id) values \
-				('%s',%d,'%s','%s',%d,%d,%d,%d,'%s',%d)" % \
+				('%s',%d,'%s','%s',%.3f,%.3f,%.3f,%.3f,'%s',%d)" % \
 				(kpi["name"],kpi["plants"],kpi["firstday"],kpi["lastday"],kpi["mean"],kpi["median"],kpi["minimum"],kpi["maximum"],kpi["sampleinterval"],runId)
 			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
 			cursor = db.cursor()

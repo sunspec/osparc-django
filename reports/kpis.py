@@ -1,7 +1,13 @@
 import datetime
 import sys
 import collections
-import models
+from models import KpiTimeseriesElement
+
+# XXX TBD TODO Heinosity Alert:
+# This, i.e. the script that runs reports, uses models that are very similar, but different,
+# from the models used in the django web services.
+# They should be combined; meanwhile, tread carefully!
+
 
 class KPIs(object):
 
@@ -89,16 +95,15 @@ class KPIs(object):
             return serializer.validated_data
         return
 
-    def buildAndSaveKpi(self,entryList,name):
-        return KPIs.saveKpi( self,KPIs.buildKpi(self,entryList,name),name )
-
     def findPlantsDcrating(self,plants,id):
         for plant in plants:
             if plant.id == id:
                 return plant.dcrating
         return None
 
-    def calculateKPIs( self, plants, timeseries ):
+    def calculatePlantKPIs(self,plants):
+
+        # dcrating, StorageCapacity and storage State of Health
 
         dcList = list()
         storCapList = list()
@@ -107,16 +112,14 @@ class KPIs(object):
         try:
             for plant in plants:
                 if plant.dcrating is not None:
-                    dcList.append( models.KpiTimeseriesElement(plant.id,plant.activationdate,plant.dcrating,1) )
-                    # dcratingArray[plant.id] = plant.dcrating
+                    dcList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.dcrating,1) )
                 if plant.storageoriginalcapacity is not None:
-                    storCapList.append( models.KpiTimeseriesElement(plant.id,plant.activationdate,plant.storageoriginalcapacity,1) )
+                    storCapList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storageoriginalcapacity,1) )
                     if plant.storagecurrentcapacity is not None:
-                        storSOHList.append( models.KpiTimeseriesElement(plant.id,plant.activationdate,plant.storagecurrentcapacity,plant.storageoriginalcapacity) )
+                        storSOHList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storagecurrentcapacity,plant.storageoriginalcapacity) )
         except:
             print "ERROR reading plant dcrating or storagecapacity"
             return None
-
 
         # Fill in the plant-related KPIs
         result = collections.defaultdict(dict)
@@ -130,7 +133,9 @@ class KPIs(object):
         # 3. Storage State of Health
         result['StorageStateOfHealth'] = KPIs.buildKpi(self,storSOHList,'StorageStateOfHealth')
 
-        #  Now the timeseries-related KPIs
+        return result
+
+    def calculateTimeseriesKPIs(self,plants,timeseries):
 
         # First, get a list of each element that will contribute to each KPI
         # We get a separate list per KPI because not all time series elements contain all measurements
@@ -141,20 +146,19 @@ class KPIs(object):
 
         try:
             for entry in timeseries:
-
                 if entry.GHI_DIFF is not None:
-                    ghiList.append( models.KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.GHI_DIFF,1) )
+                    ghiList.append( KpiTimeseriesElement(entry.plant_id,entry.timestamp.date(),entry.GHI_DIFF,1) )
                 if entry.WH_DIFF is not None:
-                    whList.append( models.KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.WH_DIFF,1) )
-                    dcrating = KPIs.findPlantsDcrating(self,plants,entry.plant)
-                    yfList.append( models.KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.WH_DIFF,dcrating) )
+                    whList.append( KpiTimeseriesElement(entry.plant_id,entry.timestamp.date(),entry.WH_DIFF,1) )
+                    dcrating = KPIs.findPlantsDcrating(self,plants,entry.plant_id)
+                    yfList.append( KpiTimeseriesElement(entry.plant_id,entry.timestamp.date(),entry.WH_DIFF,dcrating) )
                 if entry.HPOA_DIFF is not None:
-                    yrList.append( models.KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.HPOA_DIFF,1000) )
+                    yrList.append( KpiTimeseriesElement(entry.plant_id,entry.timestamp.date(),entry.HPOA_DIFF,1000) )
         except:
             print "ERROR reading timeseries"
             return None
 
-        # Now calculate the KPIs
+        result = collections.defaultdict(dict)
 
         # 1. GHI (daily insolation)
         result['MonthlyInsolation'] = KPIs.buildKpi(self,ghiList,'MonthlyInsolation')
@@ -167,11 +171,22 @@ class KPIs(object):
         
         # 4. YR (hpoa yield kWh/kWp)
         if len(yrList) > 0:
-            result['PerformanceRatio'] = KPIs.divide(self,result['MonthlyYield'],KPIs.buildKpi(self,yrList,''))
+            denom = KPIs.buildKpi(self,yrList,'')
+            result['PerformanceRatio'] = KPIs.divide(self,result['MonthlyYield'],denom)
             result['PerformanceRatio']['name'] = 'PerformanceRatio'
 
         return result
 
+    def calculateKPIs(self,plants,timeseries):
 
+        plantResult = KPIs.calculatePlantKPIs(self,plants)
+        if plantResult == None:
+            return None
+        timeseriesResult = KPIs.calculateTimeseriesKPIs(self,plants,timeseries)
+        if timeseriesResult == None:
+            result = dict(plantResult.items())
+        else:
+            result = dict(plantResult.items() + timeseriesResult.items())
 
+        return result
 

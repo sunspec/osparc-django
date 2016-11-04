@@ -10,7 +10,7 @@ class KpiTimeseriesElement:
         self.timestamp = timestamp
         self.value = numerator/denominator
 
-class KpiMixin(object):
+class KPIs(object):
 
     def median(self,lst):
         sortedLst = sorted(lst)
@@ -34,22 +34,21 @@ class KpiMixin(object):
         currentPlant = 0
         numberOfPlants = 0
 
-        if len(entryList) > 0:
-            for entry in entryList:
-                if entry.plantId != currentPlant:
-                    currentPlant = entry.plantId
-                    numberOfPlants = numberOfPlants+1 # there are multiple entries from the same plant
-                # print( "currentPlant=%d, entry.plantId=%d, numberOfPlants=%d" % (currentPlant,entry.plantId,numberOfPlants))
-                if entry.timestamp < firstEntry:
-                    firstEntry = entry.timestamp
-                if entry.timestamp > lastEntry:
-                    lastEntry = entry.timestamp
-                total += entry.value
-                if entry.value < minValue:
-                    minValue = entry.value
-                if entry.value > maxValue:
-                    maxValue = entry.value
-                valueList.append(entry.value)
+        for entry in entryList:
+            if entry.plantId != currentPlant:
+                currentPlant = entry.plantId
+                numberOfPlants = numberOfPlants+1 # there are multiple entries from the same plant
+            # print( "currentPlant=%d, entry.plantId=%d, numberOfPlants=%d" % (currentPlant,entry.plantId,numberOfPlants))
+            if entry.timestamp < firstEntry:
+                firstEntry = entry.timestamp
+            if entry.timestamp > lastEntry:
+                lastEntry = entry.timestamp
+            total += entry.value
+            if entry.value < minValue:
+                minValue = entry.value
+            if entry.value > maxValue:
+                maxValue = entry.value
+            valueList.append(entry.value)
 
         kpi = collections.defaultdict(dict)
         kpi['name'] = name
@@ -63,9 +62,10 @@ class KpiMixin(object):
         else:
             kpi['mean'] = 0
         if len(valueList) > 0:
-            kpi['median'] = round( KpiMixin.median(self,valueList),3 )
+            kpi['median'] = round( KPIs.median(self,valueList),3 )
         else:
             kpi['median'] = 0
+        kpi['sampleinterval'] = 'monthly'
 
         return kpi
 
@@ -78,6 +78,7 @@ class KpiMixin(object):
         kpi['maximum'] = round(dict1['maximum'] / dict2['maximum'],3)
         kpi['mean'] = round(dict1['mean'] / dict2['mean'],3)
         kpi['median'] = round(dict1['median'] / dict2['median'],3)
+        kpi['sampleinterval'] = dict1['sampleinterval']
         return kpi
 
     def saveKpi( self,kpi,name ):
@@ -98,37 +99,47 @@ class KpiMixin(object):
     def buildAndSaveKpi(self,entryList,name):
         return KpiMixin.saveKpi( self,KpiMixin.buildKpi(self,entryList,name),name )
 
+    def findPlantsDcrating(self,plants,id):
+        for plant in plants:
+            if plant.id == id:
+                return plant.dcrating
+        return None
 
-    def calculateKPIs(self,plants,timeseries):
+    def calculatePlantKPIs(self,plants):
 
-        # dcrating and StorageCapacity
+        # dcrating, StorageCapacity and storage State of Health
 
         dcList = list()
         storCapList = list()
         storSOHList = list()
-        for plant in plants:
-            if plant.dcrating is not None:
-                dcList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.dcrating,1) )
-            if plant.storageoriginalcapacity is not None:
-                storCapList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storageoriginalcapacity,1) )
-                if plant.storagecurrentcapacity is not None:
-                    storSOHList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storagecurrentcapacity,plant.storageoriginalcapacity) )
-                else:
+
+        try:
+            for plant in plants:
+                if plant.dcrating is not None:
+                    dcList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.dcrating,1) )
+                if plant.storageoriginalcapacity is not None:
                     storCapList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storageoriginalcapacity,1) )
+                    if plant.storagecurrentcapacity is not None:
+                        storSOHList.append( KpiTimeseriesElement(plant.id,plant.activationdate,plant.storagecurrentcapacity,plant.storageoriginalcapacity) )
+        except:
+            print "ERROR reading plant dcrating or storagecapacity"
+            return None
 
         # Fill in the plant-related KPIs
         result = collections.defaultdict(dict)
 
         # 1. DC Power Rating (rated DC power)
-        result['DCRating'] = self.buildAndSaveKpi(dcList,'DCRating')
+        result['DCRating'] = KPIs.buildKpi(self,dcList,'DCRating')
 
         # 2. Storage Capacity
-        result['StorageCapacity'] = self.buildAndSaveKpi(storCapList,'StorageCapacity')
+        result['StorageCapacity'] = KPIs.buildKpi(self,storCapList,'StorageCapacity')
 
         # 3. Storage State of Health
-        result['StorageStateOfHealth'] = self.buildAndSaveKpi(storSOHList,'StorageStateOfHealth')
+        result['StorageStateOfHealth'] = KPIs.buildKpi(self,storSOHList,'StorageStateOfHealth')
 
-        #  Now the timeseries-related KPIs
+        return result
+
+    def calculateTimeseriesKPIs(self,plants,timeseries):
 
         # First, get a list of each element that will contribute to each KPI
         # We get a separate list per KPI because not all time series elements contain all measurements
@@ -136,30 +147,49 @@ class KpiMixin(object):
         whList = list()
         yfList = list()
         yrList = list()
-        for entry in timeseries:
-            if entry.GHI_DIFF is not None:
-                ghiList.append( KpiTimeseriesElement(entry.plant.id,entry.timestamp.date(),entry.GHI_DIFF,1) )
-            if entry.WH_DIFF is not None:
-                whList.append( KpiTimeseriesElement(entry.plant.id,entry.timestamp.date(),entry.WH_DIFF,1) )
-                yfList.append( KpiTimeseriesElement(entry.plant.id,entry.timestamp.date(),entry.WH_DIFF,entry.plant.dcrating) )
-            if entry.HPOA_DIFF is not None:
-                yrList.append( KpiTimeseriesElement(entry.plant.id,entry.timestamp.date(),entry.HPOA_DIFF,1000) )
 
-        # Now calculate the KPIs
+        try:
+            for entry in timeseries:
+                if entry.GHI_DIFF is not None:
+                    ghiList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.GHI_DIFF,1) )
+                if entry.WH_DIFF is not None:
+                    whList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.WH_DIFF,1) )
+                    dcrating = KPIs.findPlantsDcrating(self,plants,entry.plant.id)
+                    yfList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.WH_DIFF,dcrating) )
+                if entry.HPOA_DIFF is not None:
+                    yrList.append( KpiTimeseriesElement(entry.plant,entry.timestamp.date(),entry.HPOA_DIFF,1000) )
+        except:
+            print "ERROR reading timeseries"
+            return None
+
+        result = collections.defaultdict(dict)
 
         # 1. GHI (daily insolation)
-        result['MonthlyInsolation'] = self.buildAndSaveKpi(ghiList,'MonthlyInsolation')
+        result['MonthlyInsolation'] = KPIs.buildKpi(self,ghiList,'MonthlyInsolation')
 
         # 2. WH (daily generated energy)
-        result['MonthlyGeneratedEnergy'] = self.buildAndSaveKpi(whList,'MonthlyGeneratedEnergy')
+        result['MonthlyGeneratedEnergy'] = KPIs.buildKpi(self,whList,'MonthlyGeneratedEnergy')
 
         # 3. YF (generated yield kWh/kWp)
-        result['MonthlyYield'] = self.buildAndSaveKpi(yfList,'MonthlyYield')
+        result['MonthlyYield'] = KPIs.buildKpi(self,yfList,'MonthlyYield')
         
         # 4. YR (hpoa yield kWh/kWp)
         if len(yrList) > 0:
-            result['PerformanceRatio'] = self.divide(result['MonthlyYield'],self.buildKpi(yrList,''))
+            denom = KPIs.buildKpi(self,yrList,'')
+            result['PerformanceRatio'] = KPIs.divide(self,result['MonthlyYield'],denom)
             result['PerformanceRatio']['name'] = 'PerformanceRatio'
-            self.saveKpi(result['PerformanceRatio'],'PerformanceRatio')
 
         return result
+
+    def calculateKPIs(self,plants,timeseries):
+
+        plantResult = KPIs.calculatePlantKPIs(self,plants)
+        if plantResult == None:
+            return None
+        timeseriesResult = KPIs.calculateTimeseriesKPIs(self,plants,timeseries)
+        if timeseriesResult == None:
+            result = dict(plantResult.items())
+        else:
+            result = dict(plantResult.items() + timeseriesResult.items())
+        return result
+

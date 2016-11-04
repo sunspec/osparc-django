@@ -28,7 +28,8 @@ from osparc.models import KPI
 from osparc.serializers import AccountSerializer,UploadActivitySerializer,PlantTypeSerializer,PlantSerializer
 from osparc.serializers import PlantReportSerializer,PlantTimeSeriesSerializer,KPISerializer
 from osparc.serializers import ReportDefinitionSerializer,ReportRunSerializer
-from .mixins import KpiMixin
+
+from .mixins import KPIs
 
 
 class AccountViewSet(viewsets.ModelViewSet):
@@ -167,32 +168,43 @@ class PlantDetail(mixins.RetrieveModelMixin,
             if record.plant.id == plant.id:
                 myrecords.append(record)
 
-        if myrecords != None and len(myrecords) > 0:
+        print len(myrecords)
 
-            # there are timeseries records so we can go ahead
-            plants = [ plant ]
-            mixin = KpiMixin()
-            kpis = mixin.calculateKPIs(plants,myrecords)
-            plantreportData = { 'recordstatus':1,
-                                'createtime':datetime.datetime.now(),
-                                'sampleinterval':'monthly',
-                                'firstmeasurementdate':kpis['PerformanceRatio']['firstday'],
-                                'lastmeasurementdate':kpis['PerformanceRatio']['lastday'],
-                                'monthlyyield':kpis['MonthlyYield']['mean'], # production yield kWh/kWdc
-                                'performanceratio':kpis['PerformanceRatio']['mean'], # performance ratio yf/yr
-                                'StorageStateofhealth':kpis['StorageStateOfHealth']['mean']
-            }
-        else:
+        plants = [ plant ]
 
-            plantreportData = { 'recordstatus':1,
-                                'createtime':datetime.datetime.now(),
-                                'sampleinterval':None,
-                                'firstmeasurementdate':None,
-                                'lastmeasurementdate':None,
-                                'monthlyyield':None,
-                                'performanceratio':None,
-                                'StorageStateofhealth':None
-            }
+        mixin = KPIs()
+        kpis = mixin.calculateKPIs(plants,myrecords)
+
+        try:
+            firstmeasdate = kpis['PerformanceRatio']['firstday']
+        except:
+            firstmeasdate = None
+        try:
+            lastmeasdate = kpis['PerformanceRatio']['lastday']
+        except:
+            lastmeasdate = None
+        try:
+            monthlyyield = kpis['MonthlyYield']['mean'] # production yield kWh/kWdc
+        except:
+            monthlyyield = None
+        try:
+            pr = kpis['PerformanceRatio']['mean'] # performance ratio yf/yr
+        except:
+            pr = None
+        try:
+            soh = kpis['StorageStateOfHealth']['mean']
+        except:
+            soh = None
+
+        plantreportData = { 'recordstatus':1,
+                            'createtime':datetime.datetime.now(),
+                            'sampleinterval':'monthly',
+                            'firstmeasurementdate':firstmeasdate,
+                            'lastmeasurementdate':lastmeasdate,
+                            'monthlyyield':monthlyyield,
+                            'performanceratio':pr,
+                            'StorageStateofhealth':soh
+        }
 
         # we save the report regardless of whether there were timeseries elements - the report is complete
         serializer = PlantReportSerializer(plant.plantreport,data=plantreportData)
@@ -609,7 +621,7 @@ class KPIsView(APIView):
         plants = Plant.objects.all()
         timeseries = PlantTimeSeries.objects.all()
 
-        mixin = KpiMixin()
+        mixin = KPIs()
 
         kpis = mixin.calculateKPIs(plants,timeseries)
 
