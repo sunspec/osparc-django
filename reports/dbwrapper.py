@@ -13,9 +13,21 @@ import models
 
 class DbWrapper(object):
 
+	
+	dbHost = ""
+	dbUser = ""
+	dbPwrd = ""
+	dbDb = "osparc"
+
+	def __init__(self):
+		self.dbHost = "localhost"
+		self.dbUser = "root"
+		self.dbPwrd = "PythonMySQLoSPARC"
+		self.dbDb = "osparc"
+
 	def readRun(self):
 		try:
-			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
+			db = MySQLdb.connect(self.dbHost,self.dbUser,self.dbPwrd,self.dbDb)
 			cursor = db.cursor()
 			cursor.execute("select * from osparc_reportrun")
 			runs = cursor.fetchall()
@@ -26,7 +38,7 @@ class DbWrapper(object):
 
 	def updateRunStatus(self,id,time,status):
 		try:
-			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
+			db = MySQLdb.connect(self.dbHost,self.dbUser,self.dbPwrd,self.dbDb)
 			cursor = db.cursor()
 			if status == 5:	# changing to processing
 				query = "update osparc_reportrun set status=%d,runstarttime='%s' where id=%d" % (status,time,id)
@@ -42,7 +54,7 @@ class DbWrapper(object):
 
 	def updateRunSummary(self,runid,summary):
 		try:
-			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
+			db = MySQLdb.connect(self.dbHost,self.dbUser,self.dbPwrd,self.dbDb)
 			cursor = db.cursor()
 			query = "update osparc_reportrun set numberofplants=%d,totaldccapacity=%d,totalstoragecapacity=%d,numberofmeasurements=%d,firstmeasurementdate='%s',lastmeasurementdate='%s' \
 where id=%d" % \
@@ -57,7 +69,7 @@ where id=%d" % \
 	def readDef(self,defId):
 		try:
 			query = "select * from osparc_reportdefinition where id=%d" % (defId)
-			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
+			db = MySQLdb.connect(self.dbHost,self.dbUser,self.dbPwrd,self.dbDb)
 			cursor = db.cursor()
 			cursor.execute(query)
 			defi = cursor.fetchone()
@@ -72,7 +84,7 @@ where id=%d" % \
 				query = "select id,activationdate,dcrating,storageoriginalcapacity,storagecurrentcapacity from osparc_plant where %s %s %s" % (attr,op,value)
 			else:
 				query = "select id,activationdate,dcrating,storageoriginalcapacity,storagecurrentcapacity from osparc_plant"
-			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
+			db = MySQLdb.connect(self.dbHost,self.dbUser,self.dbPwrd,self.dbDb)
 			cursor = db.cursor()
 			cursor.execute(query)
 			plantArrays = cursor.fetchall()
@@ -93,7 +105,7 @@ where id=%d" % \
 				plantIds.append(str(plant.id))
 			plantIdsStr = ','.join(plantIds)
 			query = "select * from osparc_planttimeseries where plant_id in (%s) and timestamp between '%s' and '%s'" % (plantIdsStr,startTime,endTime)
-			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
+			db = MySQLdb.connect(self.dbHost,self.dbUser,self.dbPwrd,self.dbDb)
 			cursor = db.cursor()
 			cursor.execute(query)
 			resultArrays = cursor.fetchall()
@@ -117,7 +129,7 @@ where id=%d" % \
 			query = "insert into osparc_kpi (name,plants,firstday,lastday,mean,median,minimum,maximum,sampleinterval,reportrun_id) values \
 				('%s',%d,'%s','%s',%.3f,%.3f,%.3f,%.3f,'%s',%d)" % \
 				(kpi["name"],kpi["plants"],kpi["firstday"],kpi["lastday"],kpi["mean"],kpi["median"],kpi["minimum"],kpi["maximum"],kpi["sampleinterval"],runId)
-			db = MySQLdb.connect("localhost","root","PythonMySQLoSPARC","osparc")
+			db = MySQLdb.connect(self.dbHost,self.dbUser,self.dbPwrd,self.dbDb)
 			cursor = db.cursor()
 			cursor.execute(query1)
 			cursor.execute(query)

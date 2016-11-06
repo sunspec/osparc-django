@@ -92,12 +92,14 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', 
         'NAME': 'osparc',
-        'USER': 'root',
-        'PASSWORD': 'PythonMySQLoSPARC',
-        'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
+        'USER': 'osparcdb',
+        'PASSWORD': '0sparcd6',
+        'HOST': 'aa1mdgyhr3b9jaa.cfzeszoxdqzd.us-west-2.rds.amazonaws.com',
         'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
+        }
     }
-
 }
 
 

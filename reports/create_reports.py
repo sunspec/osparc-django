@@ -5,7 +5,6 @@
 # runs the report and updates the table with results and status.
 # Sets status to processing when it starts, ready when it finishes.
 
-import MySQLdb
 import datetime
 import time
 import collections
