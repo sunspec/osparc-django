@@ -25,7 +25,8 @@ SECRET_KEY = '2olx_8j%1&fn4vj5raokf*slg^%)psi1-5x(ipj0$b!2ke)7h^'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['osparc5.elasticbeanstalk.com',
+                'osparc.sunspec.org']
 
 
 # Application definition
