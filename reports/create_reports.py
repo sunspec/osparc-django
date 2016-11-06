@@ -17,8 +17,6 @@ try:
 	# get the reportruns. Those with status==pending will be processed.
 	runs = DbWrapper.readRun(dbwrapper)
 
-	print( "retrieved %d rows from osparc_reportruns" % (len(runs)))
-
 	for run in runs:
 
 		# determine whether to process this reportrun - do so if its status is pending
