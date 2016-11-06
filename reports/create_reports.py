@@ -98,5 +98,5 @@ try:
 				print "ERROR processing run",runid
 
 
-except:
-	print "ERROR processing runs"
+except Exception as e:
+	print "ERROR processing runs:",e.message,"exception type ",type(e)
