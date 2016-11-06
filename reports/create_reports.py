@@ -11,8 +11,6 @@ import collections
 from kpis import KPIs
 from dbwrapper import DbWrapper
 
-url = 'http://localhost:8001/api/reports'
-
 try:
 	dbwrapper = DbWrapper()
 

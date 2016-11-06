@@ -155,7 +155,7 @@ class KPIs(object):
                 if entry.HPOA_DIFF is not None:
                     yrList.append( KpiTimeseriesElement(entry.plant_id,entry.timestamp.date(),entry.HPOA_DIFF,1000) )
         except:
-            print "ERROR reading timeseries"
+            print "ERROR building kpi lists"
             return None
 
         result = collections.defaultdict(dict)
