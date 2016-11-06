@@ -50,7 +50,7 @@ class ReportDefinitionSerializer(serializers.ModelSerializer):
 
 class ReportRunSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
-    kpis = KPISerializer(source='kpi_set',many=True)
+    kpis = KPISerializer(source='kpi_set',many=True,read_only=True)
     class Meta:
         model = models.ReportRun
         fields = ("id","status","reportdefinition","runsubmittime","runstarttime","runcompletetime","firstmeasurementdate",
