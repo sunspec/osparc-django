@@ -162,11 +162,7 @@ class PlantDetail(mixins.RetrieveModelMixin,
 
     def createAndSaveReport(self,plant):
         # TODO TBD XXX this is horrible - figure out how to apply a filter to PlantTimeSeries.all()
-        timeseriesrecords = PlantTimeSeries.objects.all()
-        myrecords = list()
-        for record in timeseriesrecords:
-            if record.plant.id == plant.id:
-                myrecords.append(record)
+        myrecords = PlantTimeSeries.objects.filter(plant_id__exact=plant.id)
 
         print len(myrecords)
 
