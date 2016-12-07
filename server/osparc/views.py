@@ -161,10 +161,7 @@ class PlantDetail(mixins.RetrieveModelMixin,
     serializer_class = PlantSerializer
 
     def createAndSaveReport(self,plant):
-        # TODO TBD XXX this is horrible - figure out how to apply a filter to PlantTimeSeries.all()
         myrecords = PlantTimeSeries.objects.filter(plant_id__exact=plant.id)
-
-        print len(myrecords)
 
         plants = [ plant ]
 
