@@ -28,13 +28,15 @@ class DbWrapper(object):
 	def readRun(self):
 		try:
 			db = MySQLdb.connect(self.dbHost,self.dbUser,self.dbPwrd,self.dbDb)
+
 			cursor = db.cursor()
 			cursor.execute("select * from osparc_reportrun")
 			runs = cursor.fetchall()
 			db.close()
 			return runs
-		except:
-			print "ERROR reading runs"
+		except Exception as e:
+			print "ERROR reading reportrun:",e.message,"exception type ",type(e)
+
 
 	def updateRunStatus(self,id,time,status):
 		try:
@@ -81,9 +83,10 @@ where id=%d" % \
 	def getPlants(self,attr,op,value):
 		try:
 			if attr != "":
-				query = "select id,activationdate,dcrating,storageoriginalcapacity,storagecurrentcapacity from osparc_plant where %s %s %s" % (attr,op,value)
+				query = "select id,activationdate,dcrating,storageoriginalcapacity,storagecurrentcapacity from osparc_plant where %s %s '%s'" % (attr,op,value)
 			else:
 				query = "select id,activationdate,dcrating,storageoriginalcapacity,storagecurrentcapacity from osparc_plant"
+			print "executing: ",query
 			db = MySQLdb.connect(self.dbHost,self.dbUser,self.dbPwrd,self.dbDb)
 			cursor = db.cursor()
 			cursor.execute(query)
